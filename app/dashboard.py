@@ -12,7 +12,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from satdemo import modelo, rinde
+try:
+    from satdemo import modelo, rinde
+except ModuleNotFoundError:  # hosting que instala dependencias pero no el paquete (Streamlit Community Cloud)
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from satdemo import modelo, rinde
 
 RAIZ = Path(__file__).resolve().parents[1]
 DATOS, PIPELINE = RAIZ / "data", RAIZ / "salidas" / "pipeline"
