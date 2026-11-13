@@ -52,7 +52,17 @@ Precio de la harina: Banco Mundial, Pink Sheet, variación interanual calculada 
 | ago-2020 a ene-2021 | Compras de China por la recuperación porcina; soja +50 % en EE. UU. | Global | https://farmpolicynews.illinois.edu/2021/01/chinese-demand-undergirds-robust-soybean-corn-prices/ |
 | 2022/23 | Sequía en Argentina; harina +24 % interanual (dic-2022) | Clima AR | BCR, arriba |
 
-Sin fuente para su causa, y por eso no se marcan: las caídas de 2008-12, 2015, 2017 y 2024.
+Caídas del precio (causas globales):
+
+| Período | Qué pasó | Fuente |
+|---|---|---|
+| 2.º semestre 2008 | Crisis financiera: derrumbe de commodities; soja de ~566 a ~377 USD/t entre el 3.º y el 4.º trimestre | https://thedocs.worldbank.org/en/doc/357071462307042606-0050022016/original/CMO2009April.pdf |
+| 2014-2015 | Cosechas récord de EE. UU. y Sudamérica, stocks récord | https://www.grainews.ca/daily/u-s-grains-soybeans-fall-most-since-june-on-big-global-supplies · https://ers.usda.gov/webdocs/outlooks/38350/53772_ocs15i.pdf |
+| 2024 | Argentina se recupera de la sequía; cosecha y molienda récord en Brasil; harina sudamericana en mínimos desde 2020 (nov-2024) | https://www.spglobal.com/commodity-insights/en/news-research/latest-news/agriculture/112724-south-american-soybean-meal-prices-drop-to-four-year-lows |
+
+Sin fuente para su causa, y por eso sin marcar: la caída de 2017.
+
+**Efecto base en 2009:** la harina subió de 318 USD/t (dic-2008) a 460 (jun-2009), +45 %, con la sequía de Argentina y Brasil (https://world-grain.com/articles/10066-oilseeds; la BCR recortó la cosecha a 41,7 Mt). La variación interanual siguió negativa porque comparaba contra el pico de 2008, y el pico interanual de fines de 2009 compara contra el piso de la crisis. Por eso el dashboard muestra el precio en USD/t por defecto.
 
 **Por mes** (anomalía de verdor vs. variación del precio de la harina 2 meses después, ~25 años por mes): relación débil todo el año. Lo más fuerte en temporada de soja es enero (−0,21); junio-agosto llega a −0,40, pero ese verdor es trigo y pasturas, no soja.
 

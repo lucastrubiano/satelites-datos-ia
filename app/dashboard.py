@@ -89,15 +89,20 @@ def precios_mensuales():
     return p, (p.pct_change(12) * 100)
 
 
-# Hitos con fuente (docs/clima-precios-argentina.md): rojo = clima en Argentina, azul = causas globales
+# Hitos con fuente (docs/clima-precios-argentina.md). Tipo: sequía en Argentina, o causa global que sube o baja el precio
 HITOS = [
-    ("2007-07-01", "2008-07-01", "boom de granos", "global"),
-    ("2008-11-01", "2009-04-01", "sequía AR 08/09", "clima AR"),
-    ("2012-06-01", "2013-01-01", "sequía EE. UU.", "global"),
-    ("2017-12-01", "2018-04-01", "sequía AR 17/18", "clima AR"),
-    ("2020-08-01", "2021-02-01", "demanda China", "global"),
-    ("2022-11-01", "2023-04-01", "sequía AR 22/23", "clima AR"),
+    ("2007-07-01", "2008-07-01", "boom de granos", "sube"),
+    ("2008-07-01", "2008-12-01", "crisis financiera", "baja"),
+    ("2008-12-01", "2009-04-01", "sequía AR 08/09", "sequia"),
+    ("2012-06-01", "2013-01-01", "sequía EE. UU.", "sube"),
+    ("2014-07-01", "2015-06-01", "cosechas récord EE. UU. y Sudamérica", "baja"),
+    ("2017-12-01", "2018-04-01", "sequía AR 17/18", "sequia"),
+    ("2020-08-01", "2021-02-01", "demanda China", "sube"),
+    ("2022-11-01", "2023-04-01", "sequía AR 22/23", "sequia"),
+    ("2024-04-01", "2024-12-01", "récord Brasil + AR se recupera", "baja"),
 ]
+COLOR_HITO = {"sequia": ("rgba(215,48,39,.20)", "#ff8a80", "🌵 "), "sube": ("rgba(78,168,222,.18)", "#4ea8de", "🌎↑ "),
+              "baja": ("rgba(179,157,219,.18)", "#c5b3ef", "🌎↓ ")}
 
 
 @st.cache_data
@@ -140,7 +145,7 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
     # Bandas de hitos: van en cada frame, porque un frame reemplaza todas las formas del layout
     bandas = [
         dict(type="rect", x0=ini, x1=fin, xref="x", yref="y domain", y0=0, y1=1, line_width=0, layer="below",
-             fillcolor="rgba(215,48,39,.18)" if tipo == "clima AR" else "rgba(78,168,222,.18)")
+             fillcolor=COLOR_HITO[tipo][0])
         for ini, fin, _, tipo in HITOS
     ]
 
@@ -167,11 +172,11 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
         ])],
     )
     for ini, fin, texto, tipo in HITOS:
-        sequia = tipo == "clima AR"
+        sequia = tipo == "sequia"
         fig.add_annotation(x=pd.Timestamp(ini) + (pd.Timestamp(fin) - pd.Timestamp(ini)) / 2, xref="x",
                            y=0.0 if sequia else 1.0, yref="y domain", yanchor="top" if sequia else "bottom",
-                           text=("🌵 " if sequia else "🌎 ") + texto, showarrow=False, bgcolor="rgba(20,19,18,.75)",
-                           font=dict(size=12, color="#ff8a80" if sequia else "#4ea8de"))
+                           yshift=18 if tipo == "baja" else 0, text=COLOR_HITO[tipo][2] + texto, showarrow=False,
+                           bgcolor="rgba(20,19,18,.75)", font=dict(size=11, color=COLOR_HITO[tipo][1]))
     fig.update_yaxes(title_text="NDVI vs. normal", row=1, col=1, secondary_y=False)
     if precio != "Ninguno":
         fig.update_yaxes(title_text="precio", row=1, col=1, secondary_y=True, showgrid=False)
@@ -182,12 +187,15 @@ with tab_vivo:
     st.markdown(
         "**Cómo se usa:** arriba, el verdor de toda la zona cada 16 días contra lo normal para esa fecha. "
         "Arrastrá el slider: la línea naranja y el mapa se mueven juntos. Los pozos rojos son sequías.  \n"
-        "**Hitos:** 🌵 bandas rojas = sequías en Argentina (cae el verdor); 🌎 bandas azules = causas globales del "
-        "precio (boom de granos 2007-08, sequía de EE. UU. 2012, compras de China 2020-21), con el verdor argentino normal."
+        "**Hitos:** 🌵 rojo = sequías en Argentina (cae el verdor) · 🌎↑ azul = causas globales que subieron el precio · "
+        "🌎↓ violeta = causas globales que lo bajaron.  \n"
+        "**Ojo con la variación interanual:** compara contra el mismo mes del año anterior. En 2009 la harina subió 45 % "
+        "de diciembre a junio por la sequía, pero la variación seguía negativa porque se comparaba contra el pico de 2008. "
+        "Por eso el precio se muestra en USD/t por defecto."
     )
     c1, c2 = st.columns([3, 2])
     precio = c1.radio("Superponer precio internacional", ["Ninguno", "Harina de soja", "Poroto de soja"], index=1, horizontal=True)
-    modo = c2.radio("Precio como", ["Variación interanual %", "USD/t"], horizontal=True)
+    modo = c2.radio("Precio como", ["USD/t", "Variación interanual %"], horizontal=True)
     st.plotly_chart(figura_tiempo(precio, modo, "2023-02-02"), width="stretch")
 
     nivel, yoy = precios_mensuales()
