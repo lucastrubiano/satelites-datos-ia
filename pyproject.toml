@@ -1,0 +1,25 @@
+[project]
+name = "satdemo"
+version = "0.1.0"
+description = "Anticipar el rinde de la soja por departamento con verdor satelital (MODIS) y lluvia (CHIRPS)"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+dependencies = [
+    "earthengine-api",
+    "pandas",
+    "numpy",
+    "scikit-learn",
+    "matplotlib",
+    "geopandas",
+]
+
+[dependency-groups]
+dev = [
+    "jupyter",
+    "nbconvert",
+]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.10"]
+build-backend = "uv_build"
