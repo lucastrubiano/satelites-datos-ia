@@ -47,6 +47,7 @@ Precio de la harina: Banco Mundial, Pink Sheet, variación interanual calculada 
 |---|---|---|---|
 | 2007-2008 | Harina hasta +95 % interanual (abr-2008); la suba vino de maíz y trigo caros, no de falta de soja | Global | https://www.bls.gov/opub/btn/volume-9/pdf/a-historical-look-at-soybean-price-increases-what-happened-since-the-year-2000.pdf |
 | 2008/09 | Sequía en Argentina | Clima AR | Rinde MAGyP y NDVI del repo |
+| 2011/12 | Sequía en Argentina (La Niña): soja 40,1 Mt contra 49,1 de la campaña anterior (MAGyP) | Clima AR | https://www.infobae.com/2012/01/07/1041682-argentina-enfrenta-la-que-podria-ser-la-peor-sequia-los-ultimos-46-anos/ · https://www.bcr.com.ar/sites/default/files/2019-05/informe%2520especial%2520034%25202012_04_03.pdf |
 | 2012 | Sequía del Medio Oeste de EE. UU.; soja en máximos; harina +64 % interanual (dic-2012) | Clima global | https://www.ers.usda.gov/webdocs/outlooks/37906/29017_ocs12g.pdf · https://www.bloomberg.com/news/articles/2012-07-19/soybeans-surge-to-record-as-midwest-drought-scorches-crop |
 | 2017/18 | Sequía en la región núcleo, "la peor de los últimos 50 años" según la BCR; soja estimada en 32 Mt (abr-2018) | Clima AR | https://bcr.com.ar/sites/default/files/2019-05/bcr2018_08_17.pdf · https://www.iprofesional.com/comex/268901-por-la-sequia-el-estado-perdio-us1-700-millones-en-retenciones |
 | ago-2020 a ene-2021 | Compras de China por la recuperación porcina; soja +50 % en EE. UU. | Global | https://farmpolicynews.illinois.edu/2021/01/chinese-demand-undergirds-robust-soybean-corn-prices/ |

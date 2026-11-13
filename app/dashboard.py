@@ -94,6 +94,7 @@ HITOS = [
     ("2007-07-01", "2008-07-01", "boom de granos", "sube"),
     ("2008-07-01", "2008-12-01", "crisis financiera", "baja"),
     ("2008-12-01", "2009-04-01", "sequía AR 08/09", "sequia"),
+    ("2011-12-01", "2012-04-01", "sequía AR 11/12", "sequia"),
     ("2012-06-01", "2013-01-01", "sequía EE. UU.", "sube"),
     ("2014-07-01", "2015-06-01", "cosechas récord EE. UU. y Sudamérica", "baja"),
     ("2017-12-01", "2018-04-01", "sequía AR 17/18", "sequia"),
@@ -242,6 +243,8 @@ with tab_vivo:
                 f"producción {v22['produccion_mt'] / v21['produccion_mt'] - 1:+.0%} · precio {v22['precio_cosecha'] / v21['precio_cosecha'] - 1:+.0%}",
                 delta_color="off")
     st.caption(
+        "Cada punto de producción se ubica en mayo, cuando se cosecha: el de 2012 es la campaña argentina 2011/12, "
+        "con sequía propia, no la de EE. UU. (que empezó en junio). "
         "**La sequía se ve en las toneladas, no tanto en el precio.** El verdor de enero-marzo anticipa la producción "
         "del país (correlación 0,93 descontando la tendencia; 0,69 en cambio % contra la campaña anterior), mientras "
         "que con el precio la relación es débil. En 2022/23 el precio estaba alto y aun así el valor de la cosecha se "
@@ -336,7 +339,7 @@ with tab_tend:
         fig.add_bar(x=anom.index, y=v, marker_color=["#d73027" if x < 0 else "#1a9850" for x in v],
                     text=[fmt.format(x) for x in v], textposition="none",
                     hovertemplate="%{x}: %{text}<extra></extra>", showlegend=False, row=fila, col=1)
-    for a, txt in ((2008, "sequía 2008/09"), (2017, "sequía 2017/18"), (2022, "sequía 2022/23")):
+    for a, txt in ((2008, "sequía 2008/09"), (2011, "sequía 2011/12"), (2017, "sequía 2017/18"), (2022, "sequía 2022/23")):
         fig.add_vrect(x0=a - 0.5, x1=a + 0.5, fillcolor=NARANJA, opacity=0.12, line_width=0)
         fig.add_annotation(x=a, y=1.07, yref="paper", text=txt, showarrow=False, font=dict(color=NARANJA))
     fig.update_layout(height=640, margin=dict(l=0, r=0, t=40, b=0), bargap=0.15)
@@ -345,7 +348,7 @@ with tab_tend:
     st.markdown(
         "**Cómo leerlo:** cada barra es un año contra el promedio de esa misma ventana del año (verdor en ene-mar, "
         "lluvia en nov-mar), así la estacionalidad no confunde. **Rojo = por debajo de lo normal.** Cuando las tres "
-        "filas se ponen rojas a la vez, es sequía: 2008/09, 2017/18 y 2022/23. El verdor y la lluvia se conocen en marzo; "
+        "filas se ponen rojas a la vez, es sequía: 2008/09, 2011/12, 2017/18 y 2022/23. El verdor y la lluvia se conocen en marzo; "
         "el rinde, meses después."
     )
 
