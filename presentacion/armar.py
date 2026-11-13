@@ -29,6 +29,7 @@ IMAGENES = {
     "d3484a864dd1c4f0866a29afb9259a23": "qr_instagram.png",
     "0f2d371c51ae16759f23b30c8bf52a1d": "qr_youtube.png",
     "c3258cd8558d8ec01aaf42639298b439": "qr_whatsapp.png",
+    "c320ae98f1c300ae71e1e8fd465dc7b0": "qr_fastlabs.png",
 }
 BASE = """
 * { margin: 0; box-sizing: border-box; }
