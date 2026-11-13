@@ -36,7 +36,8 @@
     "casos",
     "errores",
     "hackathon",
-    "cierre"
+    "cierre",
+    "contacto"
   ],
   "sections": {
     "intro": {
@@ -64,7 +65,7 @@
       "start": "tablero"
     },
     "cierre": {
-      "description": "Errores típicos, recursos para el hackathon y cierre.",
+      "description": "Errores típicos, recursos para el hackathon, cierre y contacto.",
       "start": "errores"
     }
   },

@@ -22,6 +22,10 @@ IMAGENES = {
     "337d6f83a3ae94a6b9d6b1d290d46085": "cadena_verdor_toneladas.png",
     "b4f38bc978b9243424d901090e5f6b8d": "cadena_toneladas_precio.png",
     "0528bc53e593bb092aae4577c1967ddc": "cadena_ar_br_precio.png",
+    "b75d809d361571e5646d46e5852a7000": "avatar.png",
+    "7d067f211679f396ba2ddc415ce19eea": "qr_linkedin.png",
+    "ee31b761f88588d0847732164a3b762a": "qr_web.png",
+    "95f39c151453e113f193ca18bf1bfc43": "qr_repo.png",
 }
 BASE = """
 * { margin: 0; box-sizing: border-box; }
@@ -32,6 +36,7 @@ section.activa { visibility: visible; }
 aside { display: none; }
 ul, ol { padding-left: 1.2em; }
 img, svg { display: block; }
+img[src*='qr_'] { image-rendering: pixelated; }
 #num { position: fixed; right: 16px; bottom: 12px; font: 14px 'Geist Mono', monospace; color: #6b655d; }
 @page { size: 1920px 1080px; margin: 0; }
 @media print {
