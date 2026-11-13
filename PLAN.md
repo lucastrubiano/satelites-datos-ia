@@ -2,7 +2,7 @@
 
 > **Rev. 4 (2026-11-12, noche) — vigente.** Plan aprobado por Lucas: una sola demo, sequía 2022/23 → rinde
 > de soja por departamento, en `notebooks/01_soja_sequia.ipynb`. **Prototipo funcionando**: corre de punta
-> a punta con datos reales. Plan completo: `~/.claude/plans/investiga-planeemos-tomemos-decisiones-tranquil-parasol.md`.
+> a punta con datos reales.
 >
 > Pendiente: deck (slides 2 a 14), probar el camino de Colab, repo público (Lucas confirma antes), Linear LUC-267.
 >

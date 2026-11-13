@@ -1,7 +1,7 @@
 # Mapa de fuentes
 
 Versión corta. El detalle, con links y páginas, está en
-`~/Documents/goals/charla-space-apps/investigacion.md` (investigado el 2026-11-12).
+notas de investigación locales, fuera del repo (investigado el 2026-11-12).
 
 ## Imágenes
 

@@ -2,7 +2,7 @@
 
 - Fuente: https://www.instagram.com/reel/DfPSFHToMyE/ (@socialai.ok, 02-11-2026, 81 s).
 - Material extraído (local, **no va al repo**: es contenido de terceros):
-  `~/Documents/goals/charla-space-apps/reel/`
+  una carpeta local fuera del repo
   - `reel.mp4`, `audio.wav`
   - `transcripcion.txt` (whisper local, con marcas de tiempo)
   - `keyframes/` (9 fotogramas clave), `frames/` (27 cambios de escena), `contact_sheet.jpg`
@@ -20,7 +20,7 @@
 
 ## Qué se verificó
 
-Chequeo completo, con página del paper: `~/Documents/goals/charla-space-apps/investigacion.md`, §1.3.
+Chequeo completo, con página del paper: notas de investigación locales, fuera del repo, §1.3.
 
 | Afirmación | Veredicto |
 |---|---|

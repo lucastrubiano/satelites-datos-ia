@@ -67,4 +67,4 @@ se precomputa. No se busca más cuota.
 
 - `gcloud` no está instalado en la Mac de Lucas: lo de Google Cloud se hace por la consola web.
 - El material del reel (video, audio, fotogramas) **no va al repo**: es de @socialai.ok. Vive en
-  `~/Documents/goals/charla-space-apps/reel/`.
+  una carpeta local fuera del repo.
