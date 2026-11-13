@@ -37,6 +37,12 @@
 - **Por qué:** pedido de Lucas: un gráfico de líneas con los pozos de sequía y un mapa que sigue al slider.
 - **Estado:** vigente
 
+## 2026-11-12 · La sequía se mide en toneladas, no en precio
+- **Decisión:** el gráfico del mapa en el tiempo superpone por defecto la **producción de soja del país** (MAGyP, todos los departamentos) y ofrece el **valor de la cosecha** (producción × precio del poroto en abril-junio, Banco Mundial). El precio queda como opción.
+- **Por qué:** idea de Lucas: la sequía golpea la cantidad, y la plata que entra es cantidad × precio. Con datos: verdor ene-mar ↔ producción 0,93 descontando la tendencia (0,69 en cambio % interanual), contra −0,35 con el precio del poroto. En 2022/23 la producción cayó 43 % y el valor de la cosecha 53 %, aun con precio alto.
+- **Descartado:** el precio como métrica principal (lo mueven causas globales; ver `docs/clima-precios-argentina.md`). Datos de exportaciones del INDEC: más directos, pero no se bajaron todavía.
+- **Estado:** vigente. El valor es una aproximación a las divisas, no el dato de exportaciones.
+
 ## 2026-11-12 · Foco de la charla: fundamentos, no mercados
 - **Decisión:** el eje son los fundamentos de big data e IA para procesar imágenes satelitales, más un bloque de ML y series de tiempo. Los mercados son gancho y cierre.
 - **Por qué:** pedido de Lucas, alineado con lo que pidió Nahuel ("tenemos estos datos, ¿cómo los procesaríamos?").

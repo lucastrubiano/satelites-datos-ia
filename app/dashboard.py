@@ -106,6 +106,23 @@ COLOR_HITO = {"sequia": ("rgba(215,48,39,.20)", "#ff8a80", "🌵 "), "sube": ("r
 
 
 @st.cache_data
+def cosecha_anual():
+    """Producción de soja del país (todos los departamentos, MAGyP) y valor aproximado de la cosecha.
+
+    Valor = producción × precio internacional del poroto en abril-junio (cosecha). Aproxima las divisas
+    potenciales; no es el dato de exportaciones (Argentina exporta sobre todo harina y aceite).
+    """
+    todo = rinde.cargar(DATOS / "raw" / "soja-serie-1941-2024.csv")
+    prod = todo.groupby("anio")["produccion_tm"].sum() / 1e6
+    nivel, _ = precios_mensuales()
+    precio = pd.Series({a: nivel.loc[f"{a + 1}-04-01":f"{a + 1}-06-01", "poroto"].mean() for a in prod.index})
+    t = pd.DataFrame({"produccion_mt": prod, "precio_cosecha": precio})
+    t["valor_mmusd"] = t["produccion_mt"] * t["precio_cosecha"] / 1000
+    t["fecha"] = pd.to_datetime((t.index + 1).astype(str) + "-05-01")  # se cosecha en abril-mayo del año siguiente
+    return t
+
+
+@st.cache_data
 def figura_tiempo(precio: str, modo: str, inicio: str):
     """Gráfico de líneas + mapa en una sola figura de Plotly.
 
@@ -128,7 +145,15 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
     fig.add_scatter(x=zona["fecha"], y=zona["anom"].where(zona["anom"] < 0), mode="lines",
                     line=dict(color="#d73027", width=1.2), fill="tozeroy", fillcolor="rgba(215,48,39,.3)",
                     name="más seco que lo normal", row=1, col=1)
-    if precio != "Ninguno":
+    if precio.startswith("Producción") or precio.startswith("Valor"):
+        c = cosecha_anual()
+        prod = precio.startswith("Producción")
+        y = c["produccion_mt"] if prod else c["valor_mmusd"]
+        fig.add_scatter(x=c["fecha"], y=y, mode="lines+markers", line=dict(color="#4ea8de", width=2.5),
+                        marker=dict(size=8), name="producción de soja del país (Mt)" if prod else "valor de la cosecha (miles de M USD)",
+                        customdata=c.index.map(lambda a: f"{a}/{str(a + 1)[2:]}"),
+                        hovertemplate="campaña %{customdata}: %{y:.1f}<extra></extra>", row=1, col=1, secondary_y=True)
+    elif precio != "Ninguno":
         nivel, yoy = precios_mensuales()
         col = "harina" if precio.startswith("Harina") else "poroto"
         y = yoy[col] if modo.startswith("Variación") else nivel[col]
@@ -179,7 +204,8 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
                            bgcolor="rgba(20,19,18,.75)", font=dict(size=11, color=COLOR_HITO[tipo][1]))
     fig.update_yaxes(title_text="NDVI vs. normal", row=1, col=1, secondary_y=False)
     if precio != "Ninguno":
-        fig.update_yaxes(title_text="precio", row=1, col=1, secondary_y=True, showgrid=False)
+        titulo = "Mt" if precio.startswith("Producción") else "miles de M USD" if precio.startswith("Valor") else "precio"
+        fig.update_yaxes(title_text=titulo, row=1, col=1, secondary_y=True, showgrid=False)
     return fig
 
 
@@ -194,25 +220,34 @@ with tab_vivo:
         "Por eso el precio se muestra en USD/t por defecto."
     )
     c1, c2 = st.columns([3, 2])
-    precio = c1.radio("Superponer precio internacional", ["Ninguno", "Harina de soja", "Poroto de soja"], index=1, horizontal=True)
-    modo = c2.radio("Precio como", ["USD/t", "Variación interanual %"], horizontal=True)
+    precio = c1.radio("Superponer", ["Producción de soja", "Valor de la cosecha", "Precio harina", "Precio poroto", "Ninguno"],
+                      horizontal=True)
+    modo = c2.radio("Precio como", ["USD/t", "Variación interanual %"], horizontal=True, disabled=not precio.startswith("Precio"))
     st.plotly_chart(figura_tiempo(precio, modo, "2023-02-02"), width="stretch")
 
     nivel, yoy = precios_mensuales()
     mensual = zona.set_index("fecha")["anom"].resample("MS").mean()
-    cruce = pd.concat([mensual.rename("anom"), yoy], axis=1, sort=True).dropna()
-    temporada = cruce[cruce.index.month.isin([1, 2, 3])]
+    c = cosecha_anual()
+    verano = zona[zona["fecha"].dt.month.isin([1, 2, 3])]
+    c["ndvi_ene_mar"] = verano.groupby(verano["fecha"].dt.year - 1)["anom"].mean()
+    d = c.dropna()
+    sin_tend = d["produccion_mt"] - d["produccion_mt"].rolling(5, center=True, min_periods=3).mean()
     m = st.columns(4)
-    m[0].metric("Correlación verdor ↔ harina", f"{cruce['anom'].corr(cruce['harina']):+.2f}", "todos los meses", delta_color="off")
-    m[1].metric("Solo ene-mar", f"{temporada['anom'].corr(temporada['harina']):+.2f}", "harina", delta_color="off")
-    m[2].metric("Correlación verdor ↔ poroto", f"{cruce['anom'].corr(cruce['poroto']):+.2f}", "todos los meses", delta_color="off")
-    m[3].metric("Harina dic-2022 vs. dic-2021", f"{yoy.loc['2022-12-01', 'harina']:+.0f} %",
-                f"poroto {yoy.loc['2022-12-01', 'poroto']:+.0f} %", delta_color="off")
+    m[0].metric("Verdor ↔ producción", f"{d['ndvi_ene_mar'].corr(sin_tend):+.2f}", "sin tendencia, por campaña", delta_color="off")
+    m[1].metric("Verdor ↔ cambio % de producción", f"{d['ndvi_ene_mar'].corr(d['produccion_mt'].pct_change()):+.2f}",
+                "vs. campaña anterior", delta_color="off")
+    m[2].metric("Verdor ↔ precio poroto", f"{d['ndvi_ene_mar'].corr(d['precio_cosecha']):+.2f}", "en la cosecha", delta_color="off")
+    v21, v22 = c.loc[2021], c.loc[2022]
+    m[3].metric("Sequía 2022/23: valor de la cosecha", f"{v22['valor_mmusd'] - v21['valor_mmusd']:+.1f} mil M USD",
+                f"producción {v22['produccion_mt'] / v21['produccion_mt'] - 1:+.0%} · precio {v22['precio_cosecha'] / v21['precio_cosecha'] - 1:+.0%}",
+                delta_color="off")
     st.caption(
-        "Precios: Banco Mundial, Pink Sheet (CC-BY 4.0), USD/t, hasta dic-2024. **Lectura honesta:** la correlación "
-        "general es casi nula; el precio es global y Argentina es un jugador entre varios. En la temporada (ene-mar) "
-        "la harina reacciona algo, con el signo esperable (menos verde, precio más alto), y en la sequía 2022/23 subió "
-        "fuerte. El poroto, que se forma en Chicago, casi no acompaña."
+        "**La sequía se ve en las toneladas, no tanto en el precio.** El verdor de enero-marzo anticipa la producción "
+        "del país (correlación 0,93 descontando la tendencia; 0,69 en cambio % contra la campaña anterior), mientras "
+        "que con el precio la relación es débil. En 2022/23 el precio estaba alto y aun así el valor de la cosecha se "
+        "cayó a la mitad. Producción: MAGyP (todos los departamentos). Valor = producción × precio del poroto en "
+        "abril-junio (Banco Mundial): aproxima las divisas, no es el dato de exportaciones. Precios hasta dic-2024. "
+        "La tendencia se descuenta con una media móvil centrada de 5 campañas: sirve para describir, no para predecir."
     )
 
     with st.expander("¿Hay meses más críticos? Relación verdor ↔ precio de la harina, mes por mes"):
