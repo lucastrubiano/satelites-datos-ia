@@ -39,6 +39,23 @@ harina), no el precio del poroto.
 - Inundaciones 2025: más de un millón de hectáreas anegadas en Buenos Aires según productores
   (agosto 2025). No encontré una estimación económica consolidada.
 
+## Hitos que mueven el precio de la soja (para el dashboard)
+
+Precio de la harina: Banco Mundial, Pink Sheet, variación interanual calculada con `data/processed/precios_soja.csv`.
+
+| Período | Qué pasó | Tipo | Fuente |
+|---|---|---|---|
+| 2007-2008 | Harina hasta +95 % interanual (abr-2008); la suba vino de maíz y trigo caros, no de falta de soja | Global | https://www.bls.gov/opub/btn/volume-9/pdf/a-historical-look-at-soybean-price-increases-what-happened-since-the-year-2000.pdf |
+| 2008/09 | Sequía en Argentina | Clima AR | Rinde MAGyP y NDVI del repo |
+| 2012 | Sequía del Medio Oeste de EE. UU.; soja en máximos; harina +64 % interanual (dic-2012) | Clima global | https://www.ers.usda.gov/webdocs/outlooks/37906/29017_ocs12g.pdf · https://www.bloomberg.com/news/articles/2012-07-19/soybeans-surge-to-record-as-midwest-drought-scorches-crop |
+| 2017/18 | Sequía en la región núcleo, "la peor de los últimos 50 años" según la BCR; soja estimada en 32 Mt (abr-2018) | Clima AR | https://bcr.com.ar/sites/default/files/2019-05/bcr2018_08_17.pdf · https://www.iprofesional.com/comex/268901-por-la-sequia-el-estado-perdio-us1-700-millones-en-retenciones |
+| ago-2020 a ene-2021 | Compras de China por la recuperación porcina; soja +50 % en EE. UU. | Global | https://farmpolicynews.illinois.edu/2021/01/chinese-demand-undergirds-robust-soybean-corn-prices/ |
+| 2022/23 | Sequía en Argentina; harina +24 % interanual (dic-2022) | Clima AR | BCR, arriba |
+
+Sin fuente para su causa, y por eso no se marcan: las caídas de 2008-12, 2015, 2017 y 2024.
+
+**Por mes** (anomalía de verdor vs. variación del precio de la harina 2 meses después, ~25 años por mes): relación débil todo el año. Lo más fuerte en temporada de soja es enero (−0,21); junio-agosto llega a −0,40, pero ese verdor es trigo y pasturas, no soja.
+
 ## Fuentes
 
 - https://bichosdecampo.com/llorones-con-razones-como-llego-la-bolsa-de-rosario-a-calcular-que-este-ano-se-perdieron-50-millones-de-toneladas-de-granos-por-la-sequia
