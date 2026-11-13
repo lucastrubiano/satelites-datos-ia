@@ -27,6 +27,11 @@
 - **Causa real:** los `XX000` de MAGyP son totales provinciales sin departamento; Chascomús (06217) cambió de código.
 - **Solución:** `rinde.cargar` descarta los `XX000`; Chascomús queda afuera por no estar en Georef.
 
+## El dashboard no muestra un cambio en una lista global (hitos)
+- **Pasa cuando:** se edita una constante global que usa una función con `@st.cache_data` (por ejemplo `HITOS`).
+- **Causa real:** Streamlit arma la clave de la caché con los parámetros y el código de la función, no con las globales que lee.
+- **Solución:** pasar esa lista como parámetro (`figura_tiempo(..., tuple(HITOS))`). Ya está así.
+
 ## Cosas que parecen rotas pero son a propósito
 - El modelo predice rindes muy bajos en algunos departamentos en 2022/23: se pasa de rosca donde el NDVI cayó mucho. Se muestra así, no se "corrige".
 - `extras/01_contar_autos_naip.py` no se corrió nunca: los autos son un caso explicado, no una demo.

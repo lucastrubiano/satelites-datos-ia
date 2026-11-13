@@ -124,7 +124,7 @@ def cosecha_anual():
 
 
 @st.cache_data
-def figura_tiempo(precio: str, modo: str, inicio: str):
+def figura_tiempo(precio: str, modo: str, inicio: str, hitos: tuple):
     """Gráfico de líneas + mapa en una sola figura de Plotly.
 
     El slider es de Plotly, no de Streamlit: mueve la línea y recolorea el mapa mientras se arrastra,
@@ -172,7 +172,7 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
     bandas = [
         dict(type="rect", x0=ini, x1=fin, xref="x", yref="y domain", y0=0, y1=1, line_width=0, layer="below",
              fillcolor=COLOR_HITO[tipo][0])
-        for ini, fin, _, tipo in HITOS
+        for ini, fin, _, tipo in hitos
     ]
 
     def linea(f):
@@ -184,7 +184,7 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
         for i, f in enumerate(fechas)
     ]
     fig.update_layout(
-        shapes=linea(fechas[k0]), height=980, margin=dict(l=0, r=0, t=60, b=110), hovermode="x unified",
+        shapes=linea(fechas[k0]), height=980, margin=dict(l=0, r=0, t=60, b=130), hovermode="x unified",
         legend=dict(orientation="h", y=1.09), map=dict(style="carto-darkmatter", center=dict(lat=-32.6, lon=-61.6), zoom=4.6),
         sliders=[dict(
             active=k0, x=0.06, y=0, len=0.94, yanchor="top", pad=dict(t=30, b=0), currentvalue=dict(prefix="Imagen del ", xanchor="right", font=dict(color=NARANJA, size=16)),
@@ -197,11 +197,14 @@ def figura_tiempo(precio: str, modo: str, inicio: str):
             dict(label="⏸", method="animate", args=[[None], dict(mode="immediate", frame=dict(duration=0, redraw=False))]),
         ])],
     )
-    for ini, fin, texto, tipo in HITOS:
+    n_sequia = 0
+    for ini, fin, texto, tipo in hitos:
         sequia = tipo == "sequia"
+        n_sequia += sequia
+        desfase = (-16 if n_sequia % 2 == 0 else 0) if sequia else (18 if tipo == "baja" else 0)
         fig.add_annotation(x=pd.Timestamp(ini) + (pd.Timestamp(fin) - pd.Timestamp(ini)) / 2, xref="x",
                            y=0.0 if sequia else 1.0, yref="y domain", yanchor="top" if sequia else "bottom",
-                           yshift=18 if tipo == "baja" else 0, text=COLOR_HITO[tipo][2] + texto, showarrow=False,
+                           yshift=desfase, text=COLOR_HITO[tipo][2] + texto, showarrow=False,
                            bgcolor="rgba(20,19,18,.75)", font=dict(size=11, color=COLOR_HITO[tipo][1]))
     fig.update_yaxes(title_text="NDVI vs. normal", row=1, col=1, secondary_y=False)
     if precio != "Ninguno":
@@ -224,7 +227,8 @@ with tab_vivo:
     precio = c1.radio("Superponer", ["Producción de soja", "Valor de la cosecha", "Precio harina", "Precio poroto", "Ninguno"],
                       horizontal=True)
     modo = c2.radio("Precio como", ["USD/t", "Variación interanual %"], horizontal=True, disabled=not precio.startswith("Precio"))
-    st.plotly_chart(figura_tiempo(precio, modo, "2023-02-02"), width="stretch")
+    # Los hitos van como parámetro: si cambian, la caché de Streamlit se invalida
+    st.plotly_chart(figura_tiempo(precio, modo, "2023-02-02", tuple(HITOS)), width="stretch")
 
     nivel, yoy = precios_mensuales()
     mensual = zona.set_index("fecha")["anom"].resample("MS").mean()
