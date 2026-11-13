@@ -26,6 +26,9 @@ IMAGENES = {
     "7d067f211679f396ba2ddc415ce19eea": "qr_linkedin.png",
     "ee31b761f88588d0847732164a3b762a": "qr_web.png",
     "95f39c151453e113f193ca18bf1bfc43": "qr_repo.png",
+    "d3484a864dd1c4f0866a29afb9259a23": "qr_instagram.png",
+    "0f2d371c51ae16759f23b30c8bf52a1d": "qr_youtube.png",
+    "c3258cd8558d8ec01aaf42639298b439": "qr_whatsapp.png",
 }
 BASE = """
 * { margin: 0; box-sizing: border-box; }
