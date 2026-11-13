@@ -41,7 +41,7 @@
 - **Decisión:** el gráfico del mapa en el tiempo superpone por defecto la **producción de soja del país** (MAGyP, todos los departamentos) y ofrece el **valor de la cosecha** (producción × precio del poroto en abril-junio, Banco Mundial). El precio queda como opción.
 - **Por qué:** idea de Lucas: la sequía golpea la cantidad, y la plata que entra es cantidad × precio. Con datos: verdor ene-mar ↔ producción 0,93 descontando la tendencia (0,69 en cambio % interanual), contra −0,35 con el precio del poroto. En 2022/23 la producción cayó 43 % y el valor de la cosecha 53 %, aun con precio alto.
 - **Descartado:** el precio como métrica principal (lo mueven causas globales; ver `docs/clima-precios-argentina.md`). Datos de exportaciones del INDEC: más directos, pero no se bajaron todavía.
-- **Estado:** vigente. El valor es una aproximación a las divisas, no el dato de exportaciones.
+- **Estado:** reemplazada en el gráfico por "Mapa en el tiempo en tres paneles" (el valor de la cosecha ya no se muestra). La conclusión (la sequía se ve en las toneladas) sigue.
 
 ## 2026-11-12 · Foco de la charla: fundamentos, no mercados
 - **Decisión:** el eje son los fundamentos de big data e IA para procesar imágenes satelitales, más un bloque de ML y series de tiempo. Los mercados son gancho y cierre.
@@ -66,3 +66,24 @@
 - **Por qué:** es el registro que corresponde a una charla sin fin comercial.
 - **Descartado:** "Earth Engine trainer" (pide link a un curso formal y vence al terminar el curso).
 - **Estado:** vigente. Si el proyecto se usa para un cliente, hay que registrar otro como comercial.
+
+## 2026-11-12 · Ciclo de la soja marcado en el dashboard
+- **Decisión:** constante `CICLO` en `app/dashboard.py` con siembra, período crítico y cosecha de Argentina, Brasil y EE. UU.
+  Se marca en tres lugares: bandas en "Una campaña contra las demás", franjas opcionales del período crítico (15-ene a 15-mar)
+  en el gráfico grande del mapa en el tiempo (apagadas por defecto) y un calendario por país con las fechas de precio
+  (nov, feb, may) en "De la sequía al precio".
+- **Por qué:** pedido de Lucas, para que se entienda por qué el verdor de ene-mar anticipa la cosecha y por qué el precio se
+  mide de noviembre a febrero y a mayo. Fechas con fuente en `docs/clima-precios-argentina.md` ("Ciclo de la soja").
+- **Descartado:** período crítico feb-mar (la BCR lo ubica desde el 15-ene para la soja de 1ra); bandas de Brasil a altura
+  completa (se superponen con las de Argentina: van como franja tenue abajo).
+- **Estado:** vigente. Sin fuente para el período crítico de Brasil ni de la soja de 2da.
+
+## 2026-11-12 · Mapa en el tiempo en tres paneles: verdor, volumen, precio
+- **Decisión:** el gráfico principal muestra tres paneles con el mismo eje de tiempo, sin selectores: verdor vs. normal,
+  producción de soja del país por campaña (rojas las de sequía) y una sola serie de precio, la harina de soja (USD/t). Las
+  sequías AR cruzan los tres paneles; las causas globales van solo en el de precio, como "otros factores", con un checkbox
+  que atenúa el precio dentro de esas bandas. Debajo, una tabla de las cuatro sequías con datos de `cadena_precio.csv`.
+- **Por qué:** pedido de Lucas: las opciones de harina, poroto, valor y variación interanual confundían. Se lee de arriba
+  abajo: cae el verdor, cae el volumen, sube el precio.
+- **Descartado:** precio del poroto, valor de la cosecha y variación interanual en ese gráfico.
+- **Estado:** vigente.

@@ -6,6 +6,7 @@ Solo lee archivos del repo: no necesita Earth Engine.
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -78,8 +79,9 @@ k[4].metric(
     delta_color="off",
 )
 
-tab_vivo, tab_mapa, tab_tend, tab_img, tab_feat, tab_dec = st.tabs(
-    ["⏱️ Mapa en el tiempo", "🗺️ Mapa por campaña", "📈 Tendencias", "🧪 Cómo se tratan las imágenes", "🔢 Features", "🎯 Modelo y decisiones"]
+tab_vivo, tab_precio, tab_mapa, tab_tend, tab_img, tab_feat, tab_dec = st.tabs(
+    ["⏱️ Mapa en el tiempo", "💲 De la sequía al precio", "🗺️ Mapa por campaña", "📈 Tendencias",
+     "🧪 Cómo se tratan las imágenes", "🔢 Features", "🎯 Modelo y decisiones"]
 )
 
 # --- Mapa vivo: línea de tiempo + mapa, los dos con el mismo slider (corre en el navegador) ---
@@ -102,30 +104,48 @@ HITOS = [
     ("2022-11-01", "2023-04-01", "sequía AR 22/23", "sequia"),
     ("2024-04-01", "2024-12-01", "récord Brasil + AR se recupera", "baja"),
 ]
-COLOR_HITO = {"sequia": ("rgba(215,48,39,.20)", "#ff8a80", "🌵 "), "sube": ("rgba(78,168,222,.18)", "#4ea8de", "🌎↑ "),
+# Ciclo de la soja (docs/clima-precios-argentina.md, "Ciclo de la soja"): país, fase, tipo, inicio y fin (MM-DD)
+CICLO = [
+    ("Argentina", "siembra (1ra y 2da)", "siembra", "11-10", "01-10"),
+    ("Argentina", "período crítico R3-R6", "critico", "01-15", "03-15"),
+    ("Argentina", "cosecha", "cosecha", "03-20", "06-15"),
+    ("Brasil", "siembra", "siembra", "09-01", "12-31"),
+    ("Brasil", "cosecha", "cosecha", "01-01", "06-30"),
+    ("EE. UU.", "siembra", "siembra", "05-01", "06-30"),
+    ("EE. UU.", "período crítico", "critico", "08-01", "08-31"),
+    ("EE. UU.", "cosecha", "cosecha", "09-01", "10-31"),
+]
+COLOR_FASE = {"siembra": "#1a9850", "critico": "#d73027", "cosecha": "#f2b33d"}
+CRITICO_AR = next((ini, fin) for p, _, t, ini, fin in CICLO if p == "Argentina" and t == "critico")
+
+
+def dia_campania(mmdd: str) -> int:
+    """Días desde el 1 de julio, inicio de la campaña (año no bisiesto)."""
+    m, d = map(int, mmdd.split("-"))
+    return (pd.Timestamp(2001 + (m < 7), m, d) - pd.Timestamp(2001, 7, 1)).days
+
+
+COLOR_HITO = {"sequia":("rgba(215,48,39,.20)", "#ff8a80", "🌵 "), "sube": ("rgba(78,168,222,.18)", "#4ea8de", "🌎↑ "),
               "baja": ("rgba(179,157,219,.18)", "#c5b3ef", "🌎↓ ")}
 
 
 @st.cache_data
 def cosecha_anual():
-    """Producción de soja del país (todos los departamentos, MAGyP) y valor aproximado de la cosecha.
-
-    Valor = producción × precio internacional del poroto en abril-junio (cosecha). Aproxima las divisas
-    potenciales; no es el dato de exportaciones (Argentina exporta sobre todo harina y aceite).
-    """
+    """Producción de soja del país por campaña (todos los departamentos, MAGyP), ubicada en mayo: se cosecha en abril-mayo."""
     todo = rinde.cargar(DATOS / "raw" / "soja-serie-1941-2024.csv")
-    prod = todo.groupby("anio")["produccion_tm"].sum() / 1e6
-    nivel, _ = precios_mensuales()
-    precio = pd.Series({a: nivel.loc[f"{a + 1}-04-01":f"{a + 1}-06-01", "poroto"].mean() for a in prod.index})
-    t = pd.DataFrame({"produccion_mt": prod, "precio_cosecha": precio})
-    t["valor_mmusd"] = t["produccion_mt"] * t["precio_cosecha"] / 1000
-    t["fecha"] = pd.to_datetime((t.index + 1).astype(str) + "-05-01")  # se cosecha en abril-mayo del año siguiente
+    t = (todo.groupby("anio")["produccion_tm"].sum() / 1e6).rename("produccion_mt").to_frame()
+    t["fecha"] = pd.to_datetime((t.index + 1).astype(str) + "-05-01")
     return t
 
 
+def campania_de(fecha: str) -> int:
+    f = pd.Timestamp(fecha)
+    return f.year - (f.month < 7)
+
+
 @st.cache_data
-def figura_tiempo(precio: str, modo: str, inicio: str, hitos: tuple):
-    """Gráfico de líneas + mapa en una sola figura de Plotly.
+def figura_tiempo(inicio: str, hitos: tuple, critico: tuple | None = None, atenuar: bool = True):
+    """Tres paneles con el mismo eje de tiempo (verdor, volumen, precio) + mapa.
 
     El slider es de Plotly, no de Streamlit: mueve la línea y recolorea el mapa mientras se arrastra,
     sin ida y vuelta al servidor.
@@ -138,45 +158,70 @@ def figura_tiempo(precio: str, modo: str, inicio: str, hitos: tuple):
     texto = (nombres["departamento"] + ", " + nombres["provincia"]).tolist()
     fechas = list(tabla.index)
     k0 = min(range(len(fechas)), key=lambda i: abs(fechas[i] - pd.Timestamp(inicio)))
+    sequias = [h for h in hitos if h[3] == "sequia"]
+    globales = [h for h in hitos if h[3] != "sequia"]
 
-    fig = make_subplots(rows=2, cols=1, row_heights=[0.38, 0.62], vertical_spacing=0.04,
-                        specs=[[{"secondary_y": True}], [{"type": "map"}]])
+    fig = make_subplots(
+        rows=4, cols=1, row_heights=[0.15, 0.12, 0.15, 0.58], vertical_spacing=0.035, shared_xaxes=True,
+        specs=[[{}], [{}], [{}], [{"type": "map"}]],
+        subplot_titles=["Verdor: más verde o más seco de lo normal", "Volumen: soja cosechada en Argentina (millones de t)",
+                        "Precio de la soja (USD/t)", ""],
+    )
+    # 1 · Verdor
     fig.add_scatter(x=zona["fecha"], y=zona["anom"], mode="lines", line=dict(color="#1a9850", width=1.2),
-                    fill="tozeroy", fillcolor="rgba(26,152,80,.15)", name="verdor vs. normal", row=1, col=1)
+                    fill="tozeroy", fillcolor="rgba(26,152,80,.15)", name="más verde que lo normal", row=1, col=1)
     fig.add_scatter(x=zona["fecha"], y=zona["anom"].where(zona["anom"] < 0), mode="lines",
                     line=dict(color="#d73027", width=1.2), fill="tozeroy", fillcolor="rgba(215,48,39,.3)",
                     name="más seco que lo normal", row=1, col=1)
-    if precio.startswith("Producción") or precio.startswith("Valor"):
-        c = cosecha_anual()
-        prod = precio.startswith("Producción")
-        y = c["produccion_mt"] if prod else c["valor_mmusd"]
-        fig.add_scatter(x=c["fecha"], y=y, mode="lines+markers", line=dict(color="#4ea8de", width=2.5),
-                        marker=dict(size=8), name="producción de soja del país (Mt)" if prod else "valor de la cosecha (miles de M USD)",
-                        customdata=c.index.map(lambda a: f"{a}/{str(a + 1)[2:]}"),
-                        hovertemplate="campaña %{customdata}: %{y:.1f}<extra></extra>", row=1, col=1, secondary_y=True)
-    elif precio != "Ninguno":
-        nivel, yoy = precios_mensuales()
-        col = "harina" if precio.startswith("Harina") else "poroto"
-        y = yoy[col] if modo.startswith("Variación") else nivel[col]
-        y = y[y.index >= zona["fecha"].min()]
-        fig.add_scatter(x=y.index, y=y, mode="lines", line=dict(color="#4ea8de", width=2),
-                        name=f"precio {col} ({'var. interanual %' if modo.startswith('Variación') else 'USD/t'})",
-                        row=1, col=1, secondary_y=True)
+    # 2 · Volumen: una barra por campaña, en la cosecha; rojas las de sequía
+    c = cosecha_anual()
+    c = c[c["fecha"] >= zona["fecha"].min()]
+    secas = {campania_de(ini) for ini, *_ in sequias}
+    fig.add_bar(x=c["fecha"], y=c["produccion_mt"], width=200 * 86_400_000, showlegend=False,
+                marker_color=["#d73027" if a in secas else "#4ea8de" for a in c.index],
+                customdata=c.index.map(lambda a: f"{a}/{str(a + 1)[2:]}"),
+                hovertemplate="campaña %{customdata}: %{y:.1f} Mt<extra></extra>", row=2, col=1)
+    # 3 · Precio: una sola serie (harina); en gris tenue dentro de los períodos con otros factores globales
+    nivel, _ = precios_mensuales()
+    p = nivel["harina"][nivel.index >= zona["fecha"].min()]
+    dentro = pd.Series(False, index=p.index)
+    for ini, fin, *_ in globales:
+        dentro |= (p.index >= ini) & (p.index <= fin)
+    if atenuar:
+        borde = dentro | dentro.shift(1, fill_value=False) | dentro.shift(-1, fill_value=False)
+        fig.add_scatter(x=p.index, y=p.where(borde), mode="lines", line=dict(color="rgba(155,149,140,.55)", width=2),
+                        name="precio con otros factores globales", hovertemplate="%{y:.0f} USD/t<extra></extra>", row=3, col=1)
+        p = p.where(~dentro)
+    fig.add_scatter(x=p.index, y=p, mode="lines", line=dict(color="#4ea8de", width=2.2), name="precio de la soja",
+                    hovertemplate="%{y:.0f} USD/t<extra></extra>", row=3, col=1)
+
     fig.add_choroplethmap(geojson=geo, locations=ids, featureidkey="properties.id", z=tabla.iloc[k0].values,
                           colorscale="RdYlGn", zmin=-0.2, zmax=0.2, marker_opacity=0.8, text=texto,
                           hovertemplate="%{text}<br>NDVI vs. normal: %{z:+.3f}<extra></extra>",
-                          colorbar=dict(title="NDVI vs.<br>normal", len=0.6, y=0.32), row=2, col=1)
+                          colorbar=dict(title="NDVI vs.<br>normal", len=0.45, y=0.27), row=4, col=1)
     i_mapa = len(fig.data) - 1
 
-    # Bandas de hitos: van en cada frame, porque un frame reemplaza todas las formas del layout
-    bandas = [
-        dict(type="rect", x0=ini, x1=fin, xref="x", yref="y domain", y0=0, y1=1, line_width=0, layer="below",
-             fillcolor=COLOR_HITO[tipo][0])
-        for ini, fin, _, tipo in hitos
+    # Formas: van en cada frame, porque un frame reemplaza todas las formas del layout
+    arriba, abajo = fig.layout.yaxis.domain[1], fig.layout.yaxis3.domain[0]
+    bandas = [  # sequías AR: cruzan los tres paneles
+        dict(type="rect", x0=ini, x1=fin, xref="x", yref="paper", y0=abajo, y1=arriba, line_width=0, layer="below",
+             fillcolor=COLOR_HITO["sequia"][0])
+        for ini, fin, *_ in sequias
+    ] + [  # otros factores globales: solo en el panel de precio
+        dict(type="rect", x0=ini, x1=fin, xref="x3", yref="y3 domain", y0=0, y1=1, line_width=0, layer="below",
+             fillcolor="rgba(155,149,140,.13)")
+        for ini, fin, *_ in globales
     ]
+    if critico:  # período crítico de cada campaña, sobre el verdor
+        bandas += [
+            dict(type="rect", x0=f"{a}-{critico[0]}", x1=f"{a}-{critico[1]}", xref="x", yref="y domain", y0=0, y1=1,
+                 line_width=0, layer="below", fillcolor="rgba(242,179,61,.16)")
+            for a in range(fechas[0].year, fechas[-1].year + 1)
+        ]
 
     def linea(f):
-        return bandas + [dict(type="line", x0=f, x1=f, xref="x", yref="y domain", y0=0, y1=1, line=dict(color=NARANJA, width=3))]
+        return bandas + [dict(type="line", x0=f, x1=f, xref="x", yref="paper", y0=abajo, y1=arriba,
+                              line=dict(color=NARANJA, width=3))]
 
     fig.frames = [
         go.Frame(name=str(i), data=[go.Choroplethmap(z=tabla.iloc[i].values)], traces=[i_mapa],
@@ -184,8 +229,8 @@ def figura_tiempo(precio: str, modo: str, inicio: str, hitos: tuple):
         for i, f in enumerate(fechas)
     ]
     fig.update_layout(
-        shapes=linea(fechas[k0]), height=980, margin=dict(l=0, r=0, t=60, b=130), hovermode="x unified",
-        legend=dict(orientation="h", y=1.09), map=dict(style="carto-darkmatter", center=dict(lat=-32.6, lon=-61.6), zoom=4.6),
+        shapes=linea(fechas[k0]), height=1180, margin=dict(l=0, r=0, t=70, b=130), hovermode="x unified",
+        legend=dict(orientation="h", y=1.06), map=dict(style="carto-darkmatter", center=dict(lat=-32.6, lon=-61.6), zoom=4.6),
         sliders=[dict(
             active=k0, x=0.06, y=0, len=0.94, yanchor="top", pad=dict(t=30, b=0), currentvalue=dict(prefix="Imagen del ", xanchor="right", font=dict(color=NARANJA, size=16)),
             steps=[dict(method="animate", label=f.strftime("%d-%m-%Y"),
@@ -197,38 +242,65 @@ def figura_tiempo(precio: str, modo: str, inicio: str, hitos: tuple):
             dict(label="⏸", method="animate", args=[[None], dict(mode="immediate", frame=dict(duration=0, redraw=False))]),
         ])],
     )
-    n_sequia = 0
-    for ini, fin, texto, tipo in hitos:
-        sequia = tipo == "sequia"
-        n_sequia += sequia
-        desfase = (-16 if n_sequia % 2 == 0 else 0) if sequia else (18 if tipo == "baja" else 0)
-        fig.add_annotation(x=pd.Timestamp(ini) + (pd.Timestamp(fin) - pd.Timestamp(ini)) / 2, xref="x",
-                           y=0.0 if sequia else 1.0, yref="y domain", yanchor="top" if sequia else "bottom",
-                           yshift=desfase, text=COLOR_HITO[tipo][2] + texto, showarrow=False,
-                           bgcolor="rgba(20,19,18,.75)", font=dict(size=11, color=COLOR_HITO[tipo][1]))
-    fig.update_yaxes(title_text="NDVI vs. normal", row=1, col=1, secondary_y=False)
-    if precio != "Ninguno":
-        titulo = "Mt" if precio.startswith("Producción") else "miles de M USD" if precio.startswith("Valor") else "precio"
-        fig.update_yaxes(title_text=titulo, row=1, col=1, secondary_y=True, showgrid=False)
+    fig.update_annotations(font=dict(size=13), x=0, xanchor="left")  # títulos de los paneles, a la izquierda
+    for ini, fin, rotulo, tipo in sequias:  # rótulo arriba de la barra roja, que queda baja
+        a = campania_de(ini)
+        if a in c.index:
+            fig.add_annotation(x=c.loc[a, "fecha"], xref="x2", y=c.loc[a, "produccion_mt"], yref="y2", yanchor="bottom",
+                               text=COLOR_HITO[tipo][2] + rotulo, showarrow=False, bgcolor="rgba(20,19,18,.75)",
+                               font=dict(size=11, color=COLOR_HITO[tipo][1]))
+    for n, (ini, fin, rotulo, tipo) in enumerate(globales):
+        fig.add_annotation(x=pd.Timestamp(ini) + (pd.Timestamp(fin) - pd.Timestamp(ini)) / 2, xref="x3", y=1, yref="y3 domain",
+                           yanchor="top", yshift=-14 if n % 2 else 0, text=("↑ " if tipo == "sube" else "↓ ") + rotulo,
+                           showarrow=False, bgcolor="rgba(20,19,18,.75)", font=dict(size=10, color=GRIS))
+    fig.update_yaxes(title_text="NDVI vs. normal", row=1, col=1)
+    fig.update_yaxes(title_text="Mt", row=2, col=1)
+    fig.update_yaxes(title_text="USD/t", row=3, col=1)
+    fig.update_xaxes(showticklabels=True, row=3, col=1)
     return fig
-
 
 with tab_vivo:
     st.markdown(
-        "**Cómo se usa:** arriba, el verdor de toda la zona cada 16 días contra lo normal para esa fecha. "
-        "Arrastrá el slider: la línea naranja y el mapa se mueven juntos. Los pozos rojos son sequías.  \n"
-        "**Hitos:** 🌵 rojo = sequías en Argentina (cae el verdor) · 🌎↑ azul = causas globales que subieron el precio · "
-        "🌎↓ violeta = causas globales que lo bajaron.  \n"
-        "**Ojo con la variación interanual:** compara contra el mismo mes del año anterior. En 2009 la harina subió 45 % "
-        "de diciembre a junio por la sequía, pero la variación seguía negativa porque se comparaba contra el pico de 2008. "
-        "Por eso el precio se muestra en USD/t por defecto."
+        "**Cómo se lee, de arriba abajo:** el verdor de la zona sojera cada 16 días (🟩 más verde, 🟥 más seco que lo normal "
+        "para esa fecha) → cuánta soja se cosechó en el país → el precio. Las franjas 🌵 rojas son sequías en Argentina: "
+        "cae el verdor, cae el volumen y el precio sube. En el panel de precio, las franjas grises marcan **otros factores "
+        "globales** (crisis, cosechas de EE. UU., China) que también mueven el precio.  \n"
+        "Arrastrá el slider: la línea naranja y el mapa se mueven juntos."
     )
-    c1, c2 = st.columns([3, 2])
-    precio = c1.radio("Superponer", ["Producción de soja", "Valor de la cosecha", "Precio harina", "Precio poroto", "Ninguno"],
-                      horizontal=True)
-    modo = c2.radio("Precio como", ["USD/t", "Variación interanual %"], horizontal=True, disabled=not precio.startswith("Precio"))
-    # Los hitos van como parámetro: si cambian, la caché de Streamlit se invalida
-    st.plotly_chart(figura_tiempo(precio, modo, "2023-02-02", tuple(HITOS)), width="stretch")
+    c1, c2 = st.columns(2)
+    atenuar = c1.checkbox("Atenuar períodos con otros factores globales", value=True)
+    marcar = c2.checkbox("Marcar el período crítico de la soja argentina en cada campaña (mediados de enero a mediados de marzo)")
+    # Hitos y opciones van como parámetro: si cambian, la caché de Streamlit se invalida
+    st.plotly_chart(figura_tiempo("2023-02-02", tuple(HITOS), CRITICO_AR if marcar else None, atenuar), width="stretch")
+    st.caption(
+        "Precio de la soja = **harina de soja**, lo que más exporta Argentina (Banco Mundial, Pink Sheet, USD/t, promedio "
+        "mensual, hasta dic-2024). Volumen: producción de soja de todos los departamentos (MAGyP), una barra por campaña "
+        "ubicada en mayo, cuando se cosecha; en rojo, las campañas con sequía."
+        + (" Franjas amarillas: período crítico R3-R6 (formación y llenado de grano), 15-ene a 15-mar; fuente: BCR (GEA) "
+           "y USDA, en `docs/clima-precios-argentina.md`." if marcar else "")
+    )
+
+    st.markdown("**Las cuatro sequías, sin y con otros factores a la vez**")
+    cad = pd.read_csv(DATOS / "processed" / "cadena_precio.csv", index_col="anio")
+    otro = {2008: "salida de la crisis financiera de 2008", 2011: "sequía también en Brasil; después, en EE. UU. (2012)",
+            2017: "ninguno fuerte: el caso más limpio", 2022: "récord de Brasil: compensó para mayo"}
+    s4 = cad.loc[list(otro)]
+    st.dataframe(
+        pd.DataFrame({
+            "Campaña": [f"🌵 {a % 100:02d}/{(a + 1) % 100:02d}" for a in s4.index],
+            "Verdor ene-mar vs. normal": s4["ndvi_anom"].map("{:+.1f} %".format).values,
+            "Volumen vs. tendencia": s4["sorpresa_ar"].map("{:+.1f} %".format).values,
+            "Precio nov → feb": s4["harina_nov_02"].map("{:+.1f} %".format).values,
+            "Precio nov → may": s4["harina_nov_05"].map("{:+.1f} %".format).values,
+            "Otro factor a la vez": list(otro.values()),
+        }),
+        hide_index=True, width="stretch",
+    )
+    st.caption(
+        "Precio: harina de soja, del promedio de noviembre (siembra) al de febrero (sequía a la vista) y al de mayo (cosecha). "
+        "Volumen: producción argentina contra su tendencia (USDA PSD). Detalle en la pestaña 💲 De la sequía al precio. "
+        "En las cuatro el precio subió de noviembre a febrero; para mayo, en 2022/23 lo borró la cosecha récord de Brasil."
+    )
 
     nivel, yoy = precios_mensuales()
     mensual = zona.set_index("fecha")["anom"].resample("MS").mean()
@@ -237,24 +309,16 @@ with tab_vivo:
     c["ndvi_ene_mar"] = verano.groupby(verano["fecha"].dt.year - 1)["anom"].mean()
     d = c.dropna()
     sin_tend = d["produccion_mt"] - d["produccion_mt"].rolling(5, center=True, min_periods=3).mean()
-    m = st.columns(4)
-    m[0].metric("Verdor ↔ producción", f"{d['ndvi_ene_mar'].corr(sin_tend):+.2f}", "sin tendencia, por campaña", delta_color="off")
-    m[1].metric("Verdor ↔ cambio % de producción", f"{d['ndvi_ene_mar'].corr(d['produccion_mt'].pct_change()):+.2f}",
+    m = st.columns(3)
+    m[0].metric("Verdor ↔ volumen", f"{d['ndvi_ene_mar'].corr(sin_tend):+.2f}", "sin tendencia, por campaña", delta_color="off")
+    m[1].metric("Verdor ↔ cambio % de volumen", f"{d['ndvi_ene_mar'].corr(d['produccion_mt'].pct_change()):+.2f}",
                 "vs. campaña anterior", delta_color="off")
-    m[2].metric("Verdor ↔ precio poroto", f"{d['ndvi_ene_mar'].corr(d['precio_cosecha']):+.2f}", "en la cosecha", delta_color="off")
-    v21, v22 = c.loc[2021], c.loc[2022]
-    m[3].metric("Sequía 2022/23: valor de la cosecha", f"{v22['valor_mmusd'] - v21['valor_mmusd']:+.1f} mil M USD",
-                f"producción {v22['produccion_mt'] / v21['produccion_mt'] - 1:+.0%} · precio {v22['precio_cosecha'] / v21['precio_cosecha'] - 1:+.0%}",
-                delta_color="off")
+    m[2].metric("Volumen ↔ precio nov → feb", f"{cad['sorpresa_ar'].corr(cad['harina_nov_02']):+.2f}",
+                f"{len(cad)} campañas", delta_color="off")
     st.caption(
-        "Cada punto de producción se ubica en mayo, cuando se cosecha: el de 2012 es la campaña argentina 2011/12, "
-        "con sequía propia, no la de EE. UU. (que empezó en junio). "
-        "**La sequía se ve en las toneladas, no tanto en el precio.** El verdor de enero-marzo anticipa la producción "
-        "del país (correlación 0,93 descontando la tendencia; 0,69 en cambio % contra la campaña anterior), mientras "
-        "que con el precio la relación es débil. En 2022/23 el precio estaba alto y aun así el valor de la cosecha se "
-        "cayó a la mitad. Producción: MAGyP (todos los departamentos). Valor = producción × precio del poroto en "
-        "abril-junio (Banco Mundial): aproxima las divisas, no es el dato de exportaciones. Precios hasta dic-2024. "
-        "La tendencia se descuenta con una media móvil centrada de 5 campañas: sirve para describir, no para predecir."
+        "El verdor de enero-marzo anticipa el volumen del país; cuando falta soja argentina, el precio de la harina sube "
+        "mientras dura la sequía. La tendencia del volumen se descuenta con una media móvil centrada de 5 campañas: "
+        "sirve para describir, no para predecir."
     )
 
     with st.expander("¿Hay meses más críticos? Relación verdor ↔ precio de la harina, mes por mes"):
@@ -269,7 +333,7 @@ with tab_vivo:
             "Anomalía de verdor de cada mes contra la variación interanual del precio de la harina 2 meses después; "
             "~25 años por mes, así que son señales débiles. Lo más fuerte en la temporada de la soja es **enero**, "
             "su período crítico. Junio-agosto también da negativo, pero en invierno no hay soja: ese verdor es trigo "
-            "y pasturas. **Hitos del gráfico:** rojo = clima en Argentina; azul = causas globales (boom de granos "
+            "y pasturas. **Hitos del gráfico:** rojo = sequías en Argentina; gris en el panel de precio = otros factores globales (boom de granos "
             "2007-08, sequía de EE. UU. 2012, compras de China 2020-21). Fuentes en `docs/clima-precios-argentina.md`."
         )
 
@@ -287,12 +351,26 @@ with tab_vivo:
     fig.add_scatter(x=banda["orden"], y=banda["p50"], line=dict(color=GRIS, dash="dot"), name="mediana")
     fig.add_scatter(x=esta["orden"], y=esta["ndvi"], line=dict(color=NARANJA, width=3), name=f"{camp}/{str(camp + 1)[2:]}")
     meses = pd.date_range(f"{camp}-07-01", periods=12, freq="MS")
+    for pais, fase, tipo, ini, fin in CICLO:
+        if pais == "Argentina":
+            fig.add_vrect(x0=dia_campania(ini), x1=dia_campania(fin), fillcolor=COLOR_FASE[tipo], line_width=0, layer="below",
+                          opacity=0.22 if tipo == "critico" else 0.09, annotation_text=f"{fase} AR",
+                          annotation_position="top left", annotation_font=dict(size=11, color=COLOR_FASE[tipo]))
+        elif pais == "Brasil" and tipo == "cosecha":  # tenue y abajo, para no tapar las bandas de Argentina
+            fig.add_shape(type="rect", x0=dia_campania(ini), x1=dia_campania(fin), xref="x", yref="y domain", y0=0, y1=0.07,
+                          fillcolor="rgba(78,168,222,.25)", line_width=0, layer="below")
+            fig.add_annotation(x=dia_campania(ini), xref="x", y=0.035, yref="y domain", xanchor="left", showarrow=False,
+                               text="cosecha Brasil", font=dict(size=10, color="#4ea8de"))
     fig.update_layout(
         height=380, margin=dict(l=0, r=0, t=10, b=0), legend=dict(orientation="h", y=1.1), yaxis_title="NDVI medio de la zona",
         xaxis=dict(tickvals=[(mm - meses[0]).days for mm in meses], ticktext=[mm.strftime("%b") for mm in meses]),
     )
     st.plotly_chart(fig, width="stretch")
-    st.caption("La soja se siembra en nov-dic y llena granos en ene-mar: ahí se separa una sequía de un año normal.")
+    st.caption(
+        "Bandas: siembra, período crítico (R3-R6: formación y llenado de grano) y cosecha en Argentina; abajo, en azul, la "
+        "cosecha de Brasil. **En el período crítico se separa una sequía de un año normal**: el satélite lo ve en ene-mar, "
+        "el dato oficial llega con la cosecha. Calendario: USDA (IPAD) y BCR, en `docs/clima-precios-argentina.md`."
+    )
 
 # --- Mapa ----------------------------------------------------------------------------
 with tab_mapa:
@@ -420,6 +498,88 @@ with tab_feat:
         hide_index=True, width="stretch", height=320,
     )
     st.download_button("Bajar el panel (CSV)", panel.to_csv(index=False), "panel_soja_satelite.csv", "text/csv")
+
+# --- De la sequía al precio: la cadena eslabón por eslabón ---------------------------
+with tab_precio:
+    cad = pd.read_csv(DATOS / "processed" / "cadena_precio.csv", index_col="anio")
+    seco = cad["ndvi_anom"] < -2  # campañas con verdor ene-mar claramente bajo lo normal
+    st.markdown(
+        "**La pregunta:** si el satélite ve la sequía en enero, ¿anticipa cuánta soja va a haber y hacia dónde va el precio? "
+        "Se prueba eslabón por eslabón, una campaña por punto (2005/06 a 2023/24). "
+        "Precio: **harina de soja**, porque Argentina es su primer exportador (≈ 40 % del comercio mundial, USDA). "
+        "El poroto se forma en Chicago y casi no reacciona."
+    )
+
+    # Calendario: fases por país y las tres fechas de precio que usan los gráficos de abajo
+    fig = go.Figure()
+    for tipo, nombre in (("siembra", "siembra"), ("critico", "período crítico"), ("cosecha", "cosecha")):
+        filas = [c for c in CICLO if c[2] == tipo]
+        fig.add_bar(
+            y=[c[0] for c in filas], base=[dia_campania(c[3]) for c in filas],
+            x=[dia_campania(c[4]) - dia_campania(c[3]) for c in filas], orientation="h", name=nombre,
+            marker_color=COLOR_FASE[tipo], text=[c[1] for c in filas], textposition="inside", insidetextanchor="middle",
+            customdata=[f"{c[3][3:]}/{c[3][:2]} a {c[4][3:]}/{c[4][:2]}" for c in filas],
+            hovertemplate="%{y} · %{text}<br>%{customdata}<extra></extra>",
+        )
+    for mmdd, rotulo in (("11-15", "nov · siembra AR: punto de partida"), ("02-15", "feb · sequía a la vista"),
+                         ("05-15", "may · cosecha AR + BR")):
+        fig.add_vline(x=dia_campania(mmdd), line=dict(color=NARANJA, width=2, dash="dash"))
+        fig.add_annotation(x=dia_campania(mmdd), y=1, yref="paper", yanchor="bottom", showarrow=False, text=rotulo,
+                           font=dict(color=NARANJA, size=12))
+    meses = pd.date_range("2001-07-01", periods=12, freq="MS")
+    fig.update_layout(
+        barmode="overlay", height=260, margin=dict(l=0, r=0, t=40, b=0), legend=dict(orientation="h", y=-0.2),
+        title=None, yaxis=dict(categoryorder="array", categoryarray=["EE. UU.", "Brasil", "Argentina"]),
+        xaxis=dict(range=[0, 365], tickvals=[(mm - meses[0]).days for mm in meses],
+                   ticktext=[mm.strftime("%b") for mm in meses]),
+    )
+    st.plotly_chart(fig, width="stretch")
+    st.caption(
+        "**Por qué esas fechas.** El satélite ve la sequía argentina en enero-febrero, en pleno período crítico; el dato "
+        "oficial de producción llega con la cosecha, en abril-mayo. Brasil cosecha desde enero, antes que Argentina: "
+        "en mayo su cosecha ya se conoce y pesa en el precio. EE. UU. va a contramano (siembra may-jun, cosecha sep-oct). "
+        "Precio: promedio mensual de nov, feb y may (Banco Mundial). Calendario: USDA (IPAD), BCR y Univ. de Missouri, "
+        "en `docs/clima-precios-argentina.md`."
+    )
+
+    def eslabon(col, x, y, titulo, xt, yt):
+        r = cad[x].corr(cad[y])
+        fig = go.Figure()
+        m, c0 = np.polyfit(cad[x], cad[y], 1)
+        xs = [cad[x].min(), cad[x].max()]
+        fig.add_scatter(x=xs, y=[m * v + c0 for v in xs], mode="lines", line=dict(color=GRIS, dash="dot"), showlegend=False, hoverinfo="skip")
+        fig.add_scatter(
+            x=cad[x], y=cad[y], mode="markers+text", text=[f"{a % 100:02d}/{(a + 1) % 100:02d}" for a in cad.index],
+            textposition="top center", textfont=dict(size=10),
+            marker=dict(size=11, color=["#d73027" if s else NARANJA for s in seco]), showlegend=False,
+            hovertemplate="%{text}<br>x %{x:+.1f} %<br>y %{y:+.1f} %<extra></extra>",
+        )
+        fig.add_hline(y=0, line=dict(color=GRIS, width=0.5)); fig.add_vline(x=0, line=dict(color=GRIS, width=0.5))
+        fig.update_layout(title=f"{titulo} · r = {r:+.2f}", xaxis_title=xt, yaxis_title=yt, height=420, margin=dict(t=60))
+        col.plotly_chart(fig, width="stretch")
+
+    c1, c2, c3 = st.columns(3)
+    eslabon(c1, "ndvi_anom", "sorpresa_ar", "1 · Verdor → toneladas", "verdor ene-mar vs. normal (%)", "producción AR vs. tendencia (%)")
+    eslabon(c2, "sorpresa_ar", "harina_nov_02", "2 · Toneladas AR → precio en plena sequía", "producción AR vs. tendencia (%)", "harina nov → feb (%)")
+    eslabon(c3, "sorpresa_ar_br", "harina_nov_05", "3 · AR + Brasil → precio a la cosecha", "producción AR + BR vs. tendencia (%)", "harina nov → may (%)")
+
+    k = st.columns(4)
+    k[0].metric("Harina nov→feb en sequía", f"{cad.loc[seco, 'harina_nov_02'].mean():+.0f} %", f"{seco.sum()} campañas en rojo", delta_color="off")
+    k[1].metric("Harina nov→feb el resto", f"{cad.loc[~seco, 'harina_nov_02'].mean():+.0f} %", f"{(~seco).sum()} campañas", delta_color="off")
+    k[2].metric("Subió en sequía", f"{(cad.loc[seco, 'harina_nov_02'] > 0).sum()} de {seco.sum()}", delta_color="off")
+    k[3].metric("Poroto nov→may vs. AR + BR", f"{cad['sorpresa_ar_br'].corr(cad['poroto_nov_05']):+.2f}", "más débil que la harina", delta_color="off")
+
+    st.markdown(
+        "**Cómo se lee:** "
+        "1) el verdor anticipa la cosecha argentina (r ≈ +0,8), meses antes del dato oficial. "
+        "2) Mientras dura la sequía, la harina sube cuando falta soja argentina (r ≈ −0,75). "
+        "3) A la cosecha manda la oferta de Sudamérica: Brasil cosecha al mismo tiempo y puede compensar (r ≈ −0,84 sumando los dos).\n\n"
+        "**2022/23 es el ejemplo:** Argentina −39 % contra su tendencia; la harina subió 17 % de noviembre a febrero. "
+        "Pero Brasil tuvo récord (+12 %): para mayo la harina había vuelto al nivel de noviembre. "
+        "Para anticipar el precio no alcanza con mirar Argentina: hay que mirar a los dos con el satélite.\n\n"
+        "*Datos: verdor MODIS (este repo), producción USDA PSD, precios Banco Mundial (Pink Sheet). "
+        "Son 19 campañas: es una correlación, no un modelo para operar.*"
+    )
 
 # --- Modelo y decisiones -------------------------------------------------------------
 with tab_dec:

@@ -5,3 +5,4 @@ __pycache__/
 *.tif
 runs/
 .DS_Store
+data/raw/psd/

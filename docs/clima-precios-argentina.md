@@ -67,6 +67,43 @@ Sin fuente para su causa, y por eso sin marcar: la caída de 2017.
 
 **Por mes** (anomalía de verdor vs. variación del precio de la harina 2 meses después, ~25 años por mes): relación débil todo el año. Lo más fuerte en temporada de soja es enero (−0,21); junio-agosto llega a −0,40, pero ese verdor es trigo y pasturas, no soja.
 
+## Ciclo de la soja
+
+> Consultado el 2026-11-12. El sitio de USDA IPAD (ipad.fas.usda.gov) está retirado y la nueva página de FAS
+> (fas.usda.gov/data/production) devuelve 403 a descargas automáticas: los calendarios se leyeron de las copias
+> de Wayback Machine, midiendo las barras de cada gráfico. Fechas aproximadas a ±5 días.
+
+| País | Siembra | Período crítico | Cosecha | Fuente |
+|---|---|---|---|---|
+| Argentina, soja de 1ra (74 % de la producción) | 10-nov a fin de dic | R3-R6 desde el 15-ene | ~20-mar a ~10-may | USDA IPAD crop calendar (copia 2025-08-15): http://web.archive.org/web/20250815103113/https://ipad.fas.usda.gov/rssiws/al/crop_calendar/ssa.aspx |
+| Argentina, soja de 2da (26 %) | dic a ~10-ene | sin fuente directa; por el calendario, feb-mar | ~15-abr a ~15-jun | ídem |
+| Brasil | sep a dic | sin fuente | ene a jun | USDA IPAD (copia 2026-01-25): http://web.archive.org/web/20260125101721/https://ipad.fas.usda.gov/rssiws/al/crop_calendar/br.aspx |
+| EE. UU. | may a jun | agosto (cuaje de vainas e inicio de llenado, siembras de mayo) | sep a oct | USDA IPAD (copia 2025-11-18): http://web.archive.org/web/20251118034109/https://ipad.fas.usda.gov/rssiws/al/crop_calendar/us.aspx · período crítico: Univ. de Missouri, https://ipm.missouri.edu/croppest/2015/11/Weather-and-Soybean-Yields/index.cfm |
+
+Período crítico de la soja argentina (zona núcleo):
+
+- BCR, Guía Estratégica para el Agro (GEA) N.º 903, 30-ene-2025: "el momento crítico para la soja, que se extiende del
+  15/1 al 15/2 para la región"; 60 % del área en R3-R4. https://www.bcr.com.ar/sites/default/files/2025-01/gea_903_2025_01_30_listo.pdf
+- BCR GEA N.º 955, 5-feb-2026 (el nombre del archivo dice 2025): 75 % de la soja de 1ra entre R3 y R5 y 15 % en R5, "en
+  pleno periodo crítico". https://www.bcr.com.ar/sites/default/files/2026-02/gea_955_2025_02_05_final.pdf
+- BCR GEA, 22-feb-2024: soja de 1ra "en pleno llenado de granos"; "se va a necesitar más agua durante el mes de marzo para
+  completar el llenado". https://www.bcr.com.ar/sites/default/files/2024-02/gea_854_2024_02_22_maryflor_observado.pdf
+- INTA: el período crítico de la soja va de R3 a R6 (definición del número de granos). https://repositorio.inta.gob.ar/handle/20.500.12123/8760
+
+**En el dashboard** (`CICLO` en `app/dashboard.py`) se redondea así: siembra AR 10-nov a 10-ene (1ra y 2da juntas); período
+crítico AR **15-ene a 15-mar** (R3-R6 de la 1ra, que empieza el 15-ene según la BCR y termina el llenado en marzo; incluye el
+comienzo de la 2da); cosecha AR 20-mar a 15-jun; Brasil siembra sep-dic y cosecha ene-jun; EE. UU. siembra may-jun, crítico
+agosto, cosecha sep-oct.
+
+**Diferencias con el calendario que se había propuesto:** el período crítico arranca a mediados de enero, no en febrero; la
+cosecha argentina empieza a fines de marzo, no en abril; USDA estira la cosecha de Brasil hasta junio (no abril) porque cubre
+todo el país; la cosecha de EE. UU. termina en octubre, no en noviembre. No encontré una fuente que fije el período crítico de
+Brasil ni el de la soja de 2da en Argentina.
+
+Por qué importa para la demo: el satélite ve la sequía en enero-febrero, en pleno período crítico; el dato oficial llega con
+la cosecha, en abril-mayo. Brasil cosecha desde enero, así que en mayo su cosecha ya se conoce y pesa en el precio. Por eso
+las ventanas de precio son noviembre (siembra AR), febrero (sequía a la vista) y mayo (cosecha AR + BR).
+
 ## Fuentes
 
 - https://bichosdecampo.com/llorones-con-razones-como-llego-la-bolsa-de-rosario-a-calcular-que-este-ano-se-perdieron-50-millones-de-toneladas-de-granos-por-la-sequia
