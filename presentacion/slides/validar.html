@@ -1,0 +1,18 @@
+<section id="validar" data-transition="fade">
+<p class="eyebrow">PREDECIR · 1</p>
+<h2>Primero el baseline, después el modelo</h2>
+<div class="row">
+<img class="shot" src="/_blob/ab416b51cda1970460c537151ff3f04e" alt="Error por campaña del baseline, la regresión lineal y el boosting" style="width:980px;height:467px;background:#ffffff">
+<div class="col narrow">
+<div class="row" style="gap:40px">
+<div class="plain"><p class="num-mid muted">27 %</p><p class="small muted">baseline: el promedio histórico</p></div>
+<div class="plain"><p class="num-mid hot">16 %</p><p class="small muted">regresión lineal con satélite</p></div>
+</div>
+<p>El modelo complejo (boosting) dio 17 %: <span class="strong">no le ganó al simple.</span></p>
+<p class="muted">En años normales los tres andan parecido. La diferencia aparece en las sequías.</p>
+</div>
+</div>
+<p class="foot">Rinde: <a href="https://datos.gob.ar">MAGyP</a>. Features: MODIS y CHIRPS. Validación hacia adelante, notebook del repo.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Error porcentual medio (MAPE), 2008 a 2024, entrenando cada campaña solo con las anteriores. Con 2.500 filas y 3 features, una regresión alcanza. Lección: empezar simple.</aside>
+</section>

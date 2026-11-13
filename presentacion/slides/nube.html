@@ -1,0 +1,21 @@
+<section id="nube" class="alt" data-transition="fade">
+<p class="eyebrow">DATOS · 4</p>
+<h2>No bajes nada</h2>
+<div class="row">
+<div class="col wide">
+<p class="lead">26 años de imágenes de media Argentina no entran en tu notebook. Tampoco hace falta.</p>
+<div class="codeblock">
+<p class="code comment"># le decís al servidor qué calcular; vuelve solo el resultado</p>
+<p class="code">ndvi = modis.filterDate("2023-01-01", "2023-04-01").max()</p>
+<p class="code">tabla = ndvi.reduceRegions(departamentos, ee.Reducer.mean())</p>
+</div>
+</div>
+<div class="col narrow">
+<div class="card tight"><h3><a href="https://earthengine.google.com">Earth Engine</a></h3><p class="small">El cálculo corre en Google. Gratis para uso no comercial.</p></div>
+<div class="card tight"><h3><a href="https://stacspec.org">STAC</a></h3><p class="small">Un buscador estándar de imágenes: por zona, fecha y nubes.</p></div>
+<div class="card tight"><h3><a href="https://cogeo.org">COG</a></h3><p class="small">Archivos que se leen de a pedazos: bajás solo tu recorte.</p></div>
+</div>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Es el mismo principio que en cualquier plataforma de datos moderna: el cómputo va a donde están los datos. Del caso: 53 millones de observaciones procesadas, 100 filas descargadas.</aside>
+</section>

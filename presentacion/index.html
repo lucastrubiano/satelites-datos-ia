@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lo que ven los satélites antes que Wall Street</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400..600&display=swap">
+<style>
+* { margin: 0; box-sizing: border-box; }
+html, body { height: 100%; background: #0e0d0c; overflow: hidden; }
+#escena { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; }
+section { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; visibility: hidden; }
+section.activa { visibility: visible; }
+aside { display: none; }
+ul, ol { padding-left: 1.2em; }
+img, svg { display: block; }
+#num { position: fixed; right: 16px; bottom: 12px; font: 14px 'Geist Mono', monospace; color: #6b655d; }
+@page { size: 1920px 1080px; margin: 0; }
+@media print {
+  html, body { height: auto; overflow: visible; background: none; }
+  #escena { position: static; transform: none !important; width: auto; height: auto; }
+  section { position: relative; visibility: visible; break-after: page; }
+  .car { animation: none; }
+  #num { display: none; }
+}
+
+/* Trubi Data v2, tema light (el de presentaciones): grafito cálido + naranja #EC6600, Geist + Geist Mono */
+section {
+  --color-bg: #f7f5f1;
+  --color-surface: #ffffff;
+  --color-raised: #efece6;
+  --color-border: #e2ded6;
+  --color-text: #171513;
+  --color-text-body: #3d3934;
+  --color-text-muted: #6b655d;
+  --color-accent: #ec6600;
+  --color-accent-text: #c25200;
+  --color-on-accent: #0e0d0c;
+  background: var(--color-bg);
+  color: var(--color-text-body);
+  font-family: 'Geist', Arial, sans-serif;
+  padding: 128px 128px 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.alt { background: var(--color-surface); }
+.accent { background: var(--color-accent); color: var(--color-on-accent); }
+
+h1 { font-size: 120px; line-height: 1; font-weight: 600; letter-spacing: -0.045em; color: var(--color-text); }
+h2 { font-size: 72px; line-height: 1.05; font-weight: 600; letter-spacing: -0.035em; color: var(--color-text); }
+h3 { font-size: 44px; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; color: var(--color-text); }
+p { font-size: 32px; line-height: 1.4; }
+.accent h1 { color: var(--color-on-accent); }
+.accent h2 { color: var(--color-on-accent); }
+
+.eyebrow { font-family: 'Geist Mono', 'Courier New', monospace; font-size: 24px; line-height: 1.5; letter-spacing: 0.06em; color: var(--color-accent-text); }
+.accent .eyebrow { color: var(--color-on-accent); }
+.lead { font-size: 44px; line-height: 1.25; color: var(--color-text); }
+.accent .lead { color: var(--color-on-accent); }
+.small { font-size: 24px; line-height: 1.4; }
+.muted { color: var(--color-text-muted); }
+.strong { color: var(--color-text); font-weight: 600; }
+
+.grow { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px; }
+.between { flex: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
+.row { display: flex; flex-direction: row; gap: 64px; align-items: center; }
+.col { display: flex; flex-direction: column; gap: 24px; }
+.wide { flex: 3; }
+.narrow { flex: 2; }
+
+.cards { display: grid; gap: 32px; }
+.c2 { grid-template-columns: 1fr 1fr; }
+.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.c4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 24px; padding: 40px; display: flex; flex-direction: column; gap: 16px; }
+.tight { padding: 32px; }
+.alt .card { background: var(--color-raised); }
+.plain { display: flex; flex-direction: column; gap: 16px; }
+
+.num { font-size: 120px; line-height: 1; font-weight: 600; letter-spacing: -0.045em; color: var(--color-text); }
+.num-mid { font-size: 72px; line-height: 1.05; font-weight: 600; letter-spacing: -0.035em; color: var(--color-text); }
+.hot { color: var(--color-accent-text); }
+.step { font-family: 'Geist Mono', 'Courier New', monospace; font-size: 24px; line-height: 1.5; letter-spacing: 0.06em; color: var(--color-accent-text); }
+
+.tablewrap { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; }
+.alt .tablewrap { background: var(--color-bg); }
+table { width: 100%; font-size: 32px; color: var(--color-text-body); font-family: 'Geist', Arial, sans-serif; border: none; border-collapse: collapse; }
+th { text-align: left; color: var(--color-text-muted); background: var(--color-raised); padding: 16px 24px; border: none; border-bottom: 1px solid var(--color-border); }
+td { padding: 14px 24px; border: none; border-bottom: 1px solid var(--color-border); }
+tr:last-child td { border-bottom: none; }
+.first { color: var(--color-text); }
+
+ul { font-size: 32px; line-height: 1.4; color: var(--color-text-body); }
+ol { font-size: 32px; line-height: 1.5; color: var(--color-text-body); }
+
+.codeblock { background: var(--color-raised); border: 1px solid var(--color-border); border-radius: 16px; padding: 40px; display: flex; flex-direction: column; gap: 4px; }
+.code { font-family: 'Geist Mono', 'Courier New', monospace; font-size: 24px; line-height: 1.6; color: var(--color-text); white-space: nowrap; }
+.comment { color: var(--color-text-muted); }
+
+.foot { position: absolute; left: 128px; bottom: 64px; width: 1380px; font-size: 24px; line-height: 1.2; color: var(--color-text-muted); }
+.mark { position: absolute; left: 1552px; bottom: 64px; width: 240px; text-align: right; font-size: 24px; line-height: 1.2; font-weight: 600; color: var(--color-text); }
+.accent .foot { color: var(--color-on-accent); }
+.accent .mark { color: var(--color-on-accent); }
+.accent .hot { color: var(--color-on-accent); }
+
+.shot { border-radius: 16px; border: 1px solid var(--color-border); object-fit: contain; background: #0e1117; flex: none; }
+li { margin-bottom: 0; }
+
+/* Wordmark del design system: trubi (600) + bloque-cursor en color de marca + data (300) */
+.cur { color: var(--color-accent); }
+.thin { font-weight: 300; }
+.accent .cur { color: var(--color-on-accent); }
+
+/* Escalera de tipos de analítica */
+.stairs { display: flex; flex-direction: row; gap: 32px; align-items: flex-end; }
+.stair { flex: 1; justify-content: space-between; }
+.s1 { min-height: 250px; }
+.s2 { min-height: 300px; }
+.s3 { min-height: 350px; }
+.s4 { min-height: 400px; }
+.future { border-color: var(--color-accent); }
+.bar { flex: 1; font-size: 28px; line-height: 1.3; padding: 20px 32px; border-radius: 16px; }
+.past { background: var(--color-raised); color: var(--color-text); }
+.next { background: var(--color-accent); color: var(--color-on-accent); }
+
+.pasoimg { width: 190px; flex: none; }
+
+.plot { border-radius: 10px; border: 1px solid var(--color-border); object-fit: contain; background: #ffffff; }
+
+/* Ilustraciones: los elementos aparecen escalonados al llegar al slide */
+.c5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 24px; }
+.caso { padding: 24px; gap: 12px; }
+@keyframes pop { from { opacity: 0; } }
+.car { animation: pop 0.4s both; }
+.d1 { animation-delay: 0.1s; } .d2 { animation-delay: 0.25s; } .d3 { animation-delay: 0.4s; }
+.d4 { animation-delay: 0.55s; } .d5 { animation-delay: 0.7s; } .d6 { animation-delay: 0.85s; }
+
+a { color: inherit; text-decoration: underline; text-decoration-color: var(--color-accent); text-underline-offset: 6px; }
+.accent a { text-decoration-color: var(--color-on-accent); }
+</style>
+</head>
+<body>
+<div id="escena">
+<section id="cover" data-transition="fade">
+<div class="between">
+<p class="eyebrow">NASA SPACE APPS CHALLENGE · MENDOZA · 13-11-2026</p>
+<div class="col">
+<h1>Lo que ven los satélites<br>antes que Wall Street</h1>
+<p class="lead">Big Data e IA: cómo una imagen del espacio predice mercados financieros.</p>
+</div>
+<p>Lucas Trubiano · Data &amp; Cloud Consultant · Trubi Data</p>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Arrancar con la pregunta al público: ¿cómo sabrían cuánto vendió un supermercado antes de que lo anuncie? Dejar dos o tres respuestas y pasar a la historia de Walton.</aside>
+</section>
+
+<section id="walton" data-transition="fade">
+<p class="eyebrow">EL GANCHO</p>
+<h2>Contar autos para saber cuánto vende un local</h2>
+<div class="row" style="align-items:flex-start">
+<div class="card tight" style="flex:none">
+<svg aria-label="Estacionamiento visto desde arriba: 21 de 30 lugares ocupados" viewBox="0 0 720 380" style="width:720px;height:380px">
+<rect x="0" y="0" width="720" height="380" rx="16" fill="#efece6"/>
+<rect x="10" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d1" x="21" y="20" width="48" height="80" rx="11" fill="#3d3934"/>
+<rect x="80" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d2" x="91" y="20" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="150" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d3" x="161" y="20" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="220" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="290" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d4" x="301" y="20" width="48" height="80" rx="11" fill="#3d3934"/>
+<rect x="360" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d5" x="371" y="20" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="430" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d6" x="441" y="20" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="500" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d1" x="511" y="20" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="570" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="640" y="10" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d2" x="651" y="20" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="10" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d3" x="21" y="150" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="80" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="150" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d4" x="161" y="150" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="220" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d5" x="231" y="150" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="290" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d6" x="301" y="150" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="360" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="430" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="500" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d1" x="511" y="150" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="570" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d2" x="581" y="150" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="640" y="140" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d3" x="651" y="150" width="48" height="80" rx="11" fill="#3d3934"/>
+<rect x="10" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="80" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d4" x="91" y="280" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="150" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d5" x="161" y="280" width="48" height="80" rx="11" fill="#3d3934"/>
+<rect x="220" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d6" x="231" y="280" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="290" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="360" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d1" x="371" y="280" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="430" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d2" x="441" y="280" width="48" height="80" rx="11" fill="#3d3934"/>
+<rect x="500" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="570" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d3" x="581" y="280" width="48" height="80" rx="11" fill="#ec6600"/>
+<rect x="640" y="270" width="70" height="100" fill="none" stroke="#cfcac2" stroke-width="2"/>
+</svg>
+<div class="row" style="gap:24px"><p class="num-mid hot">70 %</p><p>de ocupación<br>21 de 30 lugares</p></div>
+</div>
+<div class="col" style="flex:1;gap:32px">
+<div class="plain"><p class="step">AÑOS 70 · SAM WALTON</p><p>El fundador de Walmart sobrevolaba los estacionamientos de sus locales y de la competencia, y contaba autos.</p></div>
+<div class="plain"><p class="step">HOY · SATÉLITES</p><p>Fondos de inversión compran ese conteo, hecho con imágenes, para miles de locales.</p></div>
+<div class="plain"><p class="num-mid">≈ 4,7 %</p><p class="small muted">de retorno en los 3 días alrededor del balance, operando con esa señal.</p></div>
+</div>
+</div>
+<p class="foot">Estacionamiento: ejemplo ilustrativo. Retorno: Katona, Painter, Patatoukas y Zeng, JFQA.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>La idea es vieja; lo nuevo es la escala. Más autos que el trimestre pasado, más ventas. El dibujo es un ejemplo, no un dato real. El paper midió la ventaja de quien compraba el conteo antes del balance. Pregunta puente: ¿qué hay entre la foto y esa ganancia? Datos, procesamiento y un modelo. De eso va la charla.</aside>
+</section>
+
+<section id="analitica" class="alt" data-transition="fade">
+<p class="eyebrow">QUÉ SE PUEDE HACER CON LOS DATOS</p>
+<h2>De mirar el pasado a anticipar el futuro</h2>
+<div class="stairs">
+<div class="card tight stair s1"><p class="step">01 · DESCRIPTIVA</p><div class="col"><h3>¿Qué pasó?</h3><p class="small">La cosecha de soja 2022/23 fue de 25 millones de toneladas.</p></div></div>
+<div class="card tight stair s2"><p class="step">02 · DIAGNÓSTICA</p><div class="col"><h3>¿Por qué pasó?</h3><p class="small">Hubo sequía: el verdor estuvo muy por debajo de lo normal.</p></div></div>
+<div class="card tight stair s3 future"><p class="step">03 · PREDICTIVA</p><div class="col"><h3>¿Qué va a pasar?</h3><p class="small">En marzo, un modelo anticipa cuánto va a rendir cada departamento.</p></div></div>
+<div class="card tight stair s4 future"><p class="step">04 · PRESCRIPTIVA</p><div class="col"><h3>¿Qué conviene hacer?</h3><p class="small">Dónde tasar daños primero, cuánto comprar, qué zona asistir.</p></div></div>
+</div>
+<div class="stairs">
+<p class="bar past"><b>Miran el pasado</b> · BI y análisis de datos tradicional</p>
+<p class="bar next"><b>Miran el futuro</b> · machine learning y ciencia de datos</p>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Cuatro preguntas, de menor a mayor valor y dificultad. Los ejemplos son del caso de la charla; producción 2022/23 de MAGyP. Las dos primeras miran hacia atrás: reportes, tableros, consultas. Es el trabajo clásico de BI y de un analista de datos. Las dos últimas intentan anticipar: ahí entran machine learning y el científico de datos. Cada escalón necesita al anterior: no se predice bien lo que no se sabe describir. El caso de hoy sube los cuatro: qué pasó con la cosecha, por qué, qué se podía anticipar en marzo y qué decisión habilita. La charla sigue ese orden: datos, procesar, predecir, decidir.</aside>
+</section>
+
+<section id="dik" data-transition="fade">
+<p class="eyebrow">FUNDAMENTOS · 1</p>
+<h2>Dato, información, conocimiento</h2>
+<div class="cards c4">
+<div class="card"><p class="step">DATO</p><h3>Un número suelto</h3><p>«NDVI = 0,38 en este píxel.»</p><p class="small muted">Sin contexto no dice nada.</p></div>
+<div class="card"><p class="step">INFORMACIÓN</p><h3>Dato + contexto</h3><p>«En enero de 2023 la zona sojera estuvo 0,14 por debajo de lo normal.»</p><p class="small muted">Dónde, cuándo, contra qué.</p></div>
+<div class="card"><p class="step">CONOCIMIENTO</p><h3>Unir los puntos</h3><p>«Cuando el verdor cae así en enero, la cosecha cae.»</p><p class="small muted">Relación aprendida de muchos casos.</p></div>
+<div class="card"><p class="step">DECISIÓN</p><h3>Hacer algo</h3><p>«Ajusto compras y logística antes de la cosecha.»</p><p class="small muted">Acá aparece el valor.</p></div>
+</div>
+<p class="muted">Cada escalón agrega contexto. La IA ayuda sobre todo en el tercero: encontrar la relación.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Los números son del caso: la anomalía de verdor de la zona fue −0,14 el 1 de enero de 2023 (MODIS, repo). Remarcar que un dato sin contexto no sirve y que el modelo no decide: informa a quien decide.</aside>
+</section>
+
+<section id="bigdata" class="alt" data-transition="fade">
+<p class="eyebrow">FUNDAMENTOS · 2</p>
+<h2>¿Cuándo es big data?</h2>
+<div class="row">
+<div class="col wide">
+<div class="tablewrap">
+<table>
+<tr><th>La V</th><th>Qué significa</th><th>En satélites</th></tr>
+<tr><td class="first">Volumen</td><td>No entra en tu máquina</td><td>53 millones de observaciones para 6 imágenes</td></tr>
+<tr><td class="first">Velocidad</td><td>Llega todo el tiempo</td><td>Una imagen nueva cada pocos días</td></tr>
+<tr><td class="first">Variedad</td><td>Formatos distintos</td><td>Imágenes, lluvia, estadísticas, precios</td></tr>
+<tr><td class="first">Veracidad</td><td>No todo sirve</td><td>Nubes, sombras, píxeles rotos</td></tr>
+</table>
+</div>
+</div>
+<div class="col narrow">
+<p class="lead">La regla práctica: si no podés abrirlo en una planilla, cambia la forma de trabajar.</p>
+<p class="muted">Se lleva el cálculo a donde están los datos, no los datos a tu máquina.</p>
+</div>
+</div>
+<p class="foot">Observaciones: embudo del repo, MODIS ene-mar 2023.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>El 53 millones sale del embudo del caso: 6 escenas MODIS de enero a marzo de 2023 sobre la zona. No hace falta definir big data con precisión: importa el cambio de método.</aside>
+</section>
+
+<section id="tipos-ia" data-transition="fade">
+<p class="eyebrow">FUNDAMENTOS · 3</p>
+<h2>La IA no es solo ChatGPT</h2>
+<div class="tablewrap">
+<table>
+<tr><th>Tipo</th><th>Qué hace</th><th>Ejemplo</th></tr>
+<tr><td class="first">Reglas</td><td>Sigue condiciones escritas a mano</td><td>«Si NDVI &lt; 0,3, alerta»</td></tr>
+<tr><td class="first">Machine learning clásico</td><td>Aprende de tablas con ejemplos</td><td>Predecir el rinde con verdor y lluvia <span class="hot">← hoy</span></td></tr>
+<tr><td class="first">Deep learning (visión)</td><td>Aprende directo de imágenes</td><td>Contar autos o detectar tanques</td></tr>
+<tr><td class="first">IA generativa y LLM</td><td>Genera texto, código o imágenes</td><td>Escribir el código, explicar un resultado</td></tr>
+<tr><td class="first">Agentes</td><td>Un LLM que usa herramientas y encadena pasos</td><td>Armar este análisis de punta a punta</td></tr>
+</table>
+</div>
+<p class="muted">Cada tipo incluye al anterior como herramienta. El más nuevo no es el mejor para todo: para una tabla chica, gana el clásico.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Los LLM y los agentes son lo más conocido hoy, pero la mayoría de las predicciones con datos siguen siendo ML clásico. En el caso de hoy el modelo es una regresión; el agente ayudó a escribir el código y el dashboard.</aside>
+</section>
+
+<section id="imagen" data-transition="fade">
+<p class="eyebrow">DATOS · 1</p>
+<h2>Una imagen satelital es una tabla</h2>
+<div class="row">
+<div class="col wide">
+<p class="lead">Cada píxel es una fila. Cada banda, una columna.</p>
+<p>Una foto común tiene tres bandas: rojo, verde y azul. Un satélite suma otras que el ojo no ve, como el infrarrojo cercano.</p>
+<div class="codeblock">
+<p class="code comment"># verdor: las plantas sanas reflejan mucho infrarrojo y poco rojo</p>
+<p class="code">NDVI = (infrarrojo − rojo) / (infrarrojo + rojo)</p>
+</div>
+<p class="muted">Va de −1 a 1. Suelo desnudo: cerca de 0,2. Cultivo en su pico: 0,7 a 0,8.</p>
+</div>
+<img class="shot" src="img/01_escena_falso_color.png" alt="Escena MODIS en falso color de la zona sojera argentina" style="width:248px;height:560px">
+</div>
+<p class="foot">Imagen: NASA MODIS vía Google Earth Engine, generada en el repo.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>La imagen es una escena MODIS en falso color: el rojo intenso es vegetación. Idea central: una vez que la imagen es una tabla, vale todo lo que saben de datos.</aside>
+</section>
+
+<section id="resolucion" class="alt" data-transition="fade">
+<p class="eyebrow">DATOS · 2</p>
+<h2>Tres resoluciones definen qué podés ver</h2>
+<div class="tablewrap">
+<table>
+<tr><th>Satélite</th><th>Píxel</th><th>Vuelve cada</th><th>Sirve para</th><th>Costo</th></tr>
+<tr><td class="first">MODIS (NASA)</td><td>250 m</td><td>16 días *</td><td>Cultivos por región, desde 2000</td><td>Gratis</td></tr>
+<tr><td class="first">Landsat (NASA/USGS)</td><td>30 m</td><td>16 días</td><td>Lotes, cambios de uso del suelo</td><td>Gratis</td></tr>
+<tr><td class="first">Sentinel-2 (ESA)</td><td>10 m</td><td>5 días</td><td>Lotes chicos, incendios, agua</td><td>Gratis</td></tr>
+<tr><td class="first">Comerciales</td><td>0,3 a 0,5 m</td><td>a pedido</td><td>Autos, barcos, techos</td><td>Pago</td></tr>
+</table>
+</div>
+<p class="lead">Un auto mide 4 metros: no entra en un píxel de 10. <span class="hot">Con el problema elegido, chequeá que exista un dato que lo vea.</span></p>
+<p class="foot">* Producto de verdor MOD13Q1, compuesto de 16 días.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Espacial: tamaño del píxel. Temporal: cada cuánto vuelve. Espectral: cuántas bandas. Por eso el caso de los autos se cuenta y no se demuestra: necesita imagen paga. * MODIS pasa todos los días; el producto de verdor que usamos se publica cada 16.</aside>
+</section>
+
+<section id="fuentes" data-transition="fade">
+<p class="eyebrow">DATOS · 3</p>
+<h2>De dónde sacar datos gratis</h2>
+<div class="cards c3">
+<div class="card tight"><p class="step">IMÁGENES</p><p class="strong"><a target="_blank" rel="noopener" href="https://www.earthdata.nasa.gov">NASA Earthdata</a> y <a target="_blank" rel="noopener" href="https://worldview.earthdata.nasa.gov">Worldview</a></p><p class="strong"><a target="_blank" rel="noopener" href="https://dataspace.copernicus.eu">Copernicus Data Space</a></p><p class="strong"><a target="_blank" rel="noopener" href="https://planetarycomputer.microsoft.com">Microsoft Planetary Computer</a></p><p class="strong"><a target="_blank" rel="noopener" href="https://developers.google.com/earth-engine/datasets">Google Earth Engine</a></p><p class="small muted">Sentinel, Landsat, MODIS y cientos de colecciones.</p></div>
+<div class="card tight"><p class="step">EVENTOS Y CLIMA</p><p class="strong"><a target="_blank" rel="noopener" href="https://firms.modaps.eosdis.nasa.gov">NASA FIRMS</a></p><p class="small muted">Focos de incendio, casi en tiempo real.</p><p class="strong"><a target="_blank" rel="noopener" href="https://www.chc.ucsb.edu/data/chirps">CHIRPS</a></p><p class="small muted">Lluvia diaria desde 1981.</p><p class="strong"><a target="_blank" rel="noopener" href="https://esa-worldcover.org">ESA WorldCover</a></p><p class="small muted">Qué hay en cada píxel: cultivo, bosque, ciudad.</p></div>
+<div class="card tight"><p class="step">LO QUE QUERÉS PREDECIR</p><p class="strong"><a target="_blank" rel="noopener" href="https://datos.gob.ar">datos.gob.ar</a></p><p class="small muted">Cosechas por departamento, INDEC.</p><p class="strong"><a target="_blank" rel="noopener" href="https://www.worldbank.org/en/research/commodity-markets">Banco Mundial</a> y <a target="_blank" rel="noopener" href="https://fred.stlouisfed.org">FRED</a></p><p class="small muted">Precios de materias primas.</p><p class="strong"><a target="_blank" rel="noopener" href="https://apps.fas.usda.gov/psdonline">USDA PSD</a> y <a target="_blank" rel="noopener" href="https://www.fao.org/faostat">FAOSTAT</a></p><p class="small muted">Producción mundial por país.</p></div>
+</div>
+<p class="muted">Sumá los recursos de cada desafío de Space Apps: ya vienen con los datasets sugeridos.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Todo lo de esta slide es sin tarjeta. La tercera columna es la que más se olvida: sin la variable a predecir no hay modelo. El caso usa MODIS, CHIRPS, WorldCover, MAGyP (datos.gob.ar), Banco Mundial y USDA.</aside>
+</section>
+
+<section id="nube" class="alt" data-transition="fade">
+<p class="eyebrow">DATOS · 4</p>
+<h2>No bajes nada</h2>
+<div class="row">
+<div class="col wide">
+<p class="lead">26 años de imágenes de media Argentina no entran en tu notebook. Tampoco hace falta.</p>
+<div class="codeblock">
+<p class="code comment"># le decís al servidor qué calcular; vuelve solo el resultado</p>
+<p class="code">ndvi = modis.filterDate("2023-01-01", "2023-04-01").max()</p>
+<p class="code">tabla = ndvi.reduceRegions(departamentos, ee.Reducer.mean())</p>
+</div>
+</div>
+<div class="col narrow">
+<div class="card tight"><h3><a target="_blank" rel="noopener" href="https://earthengine.google.com">Earth Engine</a></h3><p class="small">El cálculo corre en Google. Gratis para uso no comercial.</p></div>
+<div class="card tight"><h3><a target="_blank" rel="noopener" href="https://stacspec.org">STAC</a></h3><p class="small">Un buscador estándar de imágenes: por zona, fecha y nubes.</p></div>
+<div class="card tight"><h3><a target="_blank" rel="noopener" href="https://cogeo.org">COG</a></h3><p class="small">Archivos que se leen de a pedazos: bajás solo tu recorte.</p></div>
+</div>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Es el mismo principio que en cualquier plataforma de datos moderna: el cómputo va a donde están los datos. Del caso: 53 millones de observaciones procesadas, 100 filas descargadas.</aside>
+</section>
+
+<section id="embudo" data-transition="fade">
+<p class="eyebrow">PROCESAR · 1</p>
+<h2>De 53 millones de píxeles a 100 filas</h2>
+<div class="row" style="align-items:flex-start;gap:40px">
+<div class="plain pasoimg"><img class="shot" src="img/01_escena_falso_color.png" alt="Escena MODIS cruda" style="width:168px;height:380px"><p class="step">01 CRUDO</p><p class="small strong">53,4 M</p><p class="small muted">observaciones crudas</p></div><div class="plain pasoimg"><img class="shot" src="img/03_calidad.png" alt="Mapa de calidad del píxel" style="width:168px;height:380px"><p class="step">02 CALIDAD</p><p class="small strong">52,8 M</p><p class="small muted">sin nubes ni sombras</p></div><div class="plain pasoimg"><img class="shot" src="img/04_cultivos.png" alt="Máscara de cultivos" style="width:168px;height:380px"><p class="step">03 MÁSCARA</p><p class="small strong">31,6 M</p><p class="small muted">solo en cultivo</p></div><div class="plain pasoimg"><img class="shot" src="img/05_ndvi_limpio.png" alt="NDVI máximo limpio" style="width:168px;height:380px"><p class="step">04 RESUMIR</p><p class="small strong">1 valor</p><p class="small muted">el máximo por píxel</p></div><div class="plain pasoimg"><img class="shot" src="img/06_anomalia.png" alt="Anomalía de NDVI 2023" style="width:168px;height:380px"><p class="step">05 COMPARAR</p><p class="small strong">100 filas</p><p class="small muted">una por departamento</p></div>
+<div class="col" style="width:520px;flex:none;align-self:center">
+<p class="lead">Procesar es tirar lo que no sirve y resumir lo que queda.</p>
+<p class="muted">Cada paso responde una pregunta: ¿es confiable?, ¿es lo que me interesa?, ¿cómo lo resumo?</p>
+</div>
+</div>
+<p class="foot">Zona sojera, ene-mar 2023. NASA MODIS, ESA WorldCover. Embudo del repo.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Recorrer de izquierda a derecha. La máscara de cultivos saca ciudades, montes y agua: el 41 % de las observaciones. El último paso es el que da señal: no el verdor, sino la diferencia contra lo normal.</aside>
+</section>
+
+<section id="anomalia" class="alt" data-transition="fade">
+<p class="eyebrow">PROCESAR · 2</p>
+<h2>La señal es la diferencia contra lo normal</h2>
+<img class="shot" src="img/campania_vs_normal.png" alt="NDVI de la campaña 2022/23 contra la banda de años normales, con siembra, período crítico y cosecha marcados" style="width:1664px;height:420px">
+<div class="cards c3">
+<div class="plain"><p class="strong">Estacionalidad</p><p class="small muted">El campo siempre está más verde en febrero que en agosto. Eso no es noticia.</p></div>
+<div class="plain"><p class="strong">Anomalía</p><p class="small muted">Comparar cada fecha contra la misma fecha de otros años. La línea naranja contra la banda gris.</p></div>
+<div class="plain"><p class="strong">Vale para todo</p><p class="small muted">Ventas, tráfico, temperatura: primero sacá el patrón que se repite.</p></div>
+</div>
+<p class="foot">NDVI medio de 100 departamentos sojeros. NASA MODIS, dashboard del repo.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Naranja: campaña 2022/23. Gris: lo normal (percentiles 10 a 90). La sequía se ve desde la siembra y durante todo el período crítico. Este es el feature más importante de la charla.</aside>
+</section>
+
+<section id="ciclo" data-transition="fade">
+<p class="eyebrow">PROCESAR · 3</p>
+<h2>Conocer el negocio: cuándo mirar</h2>
+<img class="shot" src="img/ciclo_soja.png" alt="Calendario de siembra, período crítico y cosecha de soja en Argentina, Brasil y Estados Unidos" style="width:1664px;height:309px">
+<div class="cards c3">
+<div class="card tight"><p class="step">15-ENE A 15-MAR</p><h3>Período crítico</h3><p class="small">Se forma y se llena el grano. Si falta agua, el rinde no se recupera.</p></div>
+<div class="card tight"><p class="step">ENERO Y FEBRERO</p><h3>El satélite ya lo ve</h3><p class="small">El dato oficial de cosecha llega recién en abril o mayo.</p></div>
+<div class="card tight"><p class="step">BRASIL</p><h3>Cosecha desde enero</h3><p class="small">Antes que Argentina. Por eso pesa en el precio.</p></div>
+</div>
+<p class="foot">Calendarios de cultivo de USDA IPAD; período crítico según la <a target="_blank" rel="noopener" href="https://www.bcr.com.ar/sites/default/files/2025-01/gea_903_2025_01_30_listo.pdf">Bolsa de Comercio de Rosario (GEA, 30-01-2025)</a>.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Un feature bueno sale de entender el dominio, no del algoritmo. Por eso el verdor se mide de enero a marzo y no en todo el año. Esos dos o tres meses de ventaja son el valor del dato.</aside>
+</section>
+
+<section id="pregunta" class="accent" data-transition="fade">
+<div class="grow">
+<p class="eyebrow">PREDECIR · EL CASO</p>
+<h1>¿Se puede anticipar la cosecha de soja mirando el verdor en enero?</h1>
+<p class="lead">100 departamentos × 25 campañas = 2.500 filas. Verdor y lluvia del satélite, rinde oficial del Ministerio.</p>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Presentar el panel: los 100 departamentos con más soja sembrada, campañas 2000/01 a 2024/25. Rinde de MAGyP en datos.gob.ar. Acá se puede abrir el notebook o el dashboard.</aside>
+</section>
+
+<section id="validar" data-transition="fade">
+<p class="eyebrow">PREDECIR · 1</p>
+<h2>Primero el baseline, después el modelo</h2>
+<div class="row">
+<img class="shot" src="img/error_por_campania.png" alt="Error por campaña del baseline, la regresión lineal y el boosting" style="width:980px;height:467px;background:#ffffff">
+<div class="col narrow">
+<div class="row" style="gap:40px">
+<div class="plain"><p class="num-mid muted">27 %</p><p class="small muted">baseline: el promedio histórico</p></div>
+<div class="plain"><p class="num-mid hot">16 %</p><p class="small muted">regresión lineal con satélite</p></div>
+</div>
+<p>El modelo complejo (boosting) dio 17 %: <span class="strong">no le ganó al simple.</span></p>
+<p class="muted">En años normales los tres andan parecido. La diferencia aparece en las sequías.</p>
+</div>
+</div>
+<p class="foot">Rinde: <a target="_blank" rel="noopener" href="https://datos.gob.ar">MAGyP</a>. Features: MODIS y CHIRPS. Validación hacia adelante, notebook del repo.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Error porcentual medio (MAPE), 2008 a 2024, entrenando cada campaña solo con las anteriores. Con 2.500 filas y 3 features, una regresión alcanza. Lección: empezar simple.</aside>
+</section>
+
+<section id="resultado" class="alt" data-transition="fade">
+<p class="eyebrow">PREDECIR · 2</p>
+<h2>Sequía 2022/23: lo que se sabía en marzo</h2>
+<div class="cards c3">
+<div class="card"><p class="step">SIN SATÉLITE</p><p class="num muted">2.644</p><p>kg/ha esperados: un año normal.</p></div>
+<div class="card"><p class="step">CON SATÉLITE</p><p class="num hot">1.890</p><p>kg/ha según el modelo, antes de cosechar.</p></div>
+<div class="card"><p class="step">LO QUE PASÓ</p><p class="num">1.720</p><p>kg/ha reales, publicados meses después.</p></div>
+</div>
+<p class="lead">El modelo no acertó el número exacto. Acertó la dirección y el tamaño, con meses de ventaja.</p>
+<p class="foot">Rinde real: <a target="_blank" rel="noopener" href="https://datos.gob.ar">MAGyP</a>. Predicción: regresión lineal entrenada con campañas anteriores.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Promedio de los 100 departamentos. Ser honesto: por departamento el error fue alto ese año, cerca del 40 %; el modelo vio la sequía pero no la magnitud en cada lugar. Aun así, la diferencia contra no mirar es enorme.</aside>
+</section>
+
+<section id="precio" data-transition="fade">
+<p class="eyebrow">PREDECIR · 3</p>
+<h2>¿Y el precio? Eslabón por eslabón</h2>
+<div class="cards c3">
+<div class="card tight"><p class="step">VERDOR → TONELADAS</p><img class="plot" src="img/cadena_verdor_toneladas.png" alt="Dispersión: verdor contra producción argentina, tendencia creciente" style="width:468px;height:200px"><p class="num-mid hot">+0,79</p><p class="small">El verdor de enero a marzo anticipa la cosecha argentina.</p></div>
+<div class="card tight"><p class="step">TONELADAS → PRECIO</p><img class="plot" src="img/cadena_toneladas_precio.png" alt="Dispersión: producción argentina contra cambio del precio de noviembre a febrero, tendencia decreciente" style="width:468px;height:200px"><p class="num-mid">−0,76</p><p class="small">Menos soja argentina, más cara la harina de noviembre a febrero.</p></div>
+<div class="card tight"><p class="step">+ BRASIL → PRECIO</p><img class="plot" src="img/cadena_ar_br_precio.png" alt="Dispersión: producción de Argentina más Brasil contra cambio del precio de noviembre a mayo, tendencia decreciente" style="width:468px;height:200px"><p class="num-mid">−0,84</p><p class="small">A la cosecha manda la oferta de los dos países juntos.</p></div>
+</div>
+<p class="small muted">Cada punto es una campaña; en negro, las 3 sequías fuertes. En las 3 la harina subió: +18 % en promedio, contra +2 % el resto.</p>
+<p class="foot">Verdor: MODIS. Producción: <a target="_blank" rel="noopener" href="https://apps.fas.usda.gov/psdonline">USDA PSD</a>. Precio de la harina: <a target="_blank" rel="noopener" href="https://www.worldbank.org/en/research/commodity-markets">Banco Mundial</a>. 19 campañas.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Cada punto es una campaña, de 2005/06 a 2023/24; los negros son 08/09, 17/18 y 22/23. Primer gráfico: más verde, más cosecha. Segundo y tercero: menos cosecha, más sube el precio. En 2022/23 Brasil tuvo récord y para mayo el precio había vuelto al nivel de noviembre. Son 19 campañas: es una correlación y no un modelo para operar. Se usa la harina porque Argentina es su primer exportador; el poroto se forma en Chicago y casi no reacciona. Lección: el precio tiene más causas que tu dato. Buscá la variable que falta, acá Brasil.</aside>
+</section>
+
+<section id="tablero" data-transition="fade">
+<p class="eyebrow">DECIDIR · 1</p>
+<h2>Mostrarlo para que se entienda en 10 segundos</h2>
+<div class="row" style="align-items:flex-start">
+<img class="shot" src="img/tres_paneles_y_mapa.png" alt="Dashboard con verdor, volumen y precio en el tiempo y el mapa de la zona sojera" style="width:740px;height:624px">
+<div class="col" style="flex:1">
+<p class="lead">Tres variables, un eje de tiempo, un mapa.</p>
+<ul>
+<li>Verdor: verde o rojo contra lo normal.</li>
+<li>Volumen: la barra roja es la sequía.</li>
+<li>Precio: en gris, cuando lo mueve otra cosa.</li>
+</ul>
+<p class="muted">La primera versión tenía cinco selectores y nadie la entendía. Sacar opciones fue la mejora.</p>
+</div>
+</div>
+<p class="foot">Dashboard del repo: uv run streamlit run app/dashboard.py</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Acá conviene abrir el dashboard en vivo y mover el slider hasta febrero de 2023. Mostrar cómo la banda roja cruza los tres paneles. Código: Streamlit y Plotly, gratis.</aside>
+</section>
+
+<section id="decisiones" class="alt" data-transition="fade">
+<p class="eyebrow">DECIDIR · 2</p>
+<h2>¿Quién hace algo distinto con esto en marzo?</h2>
+<div class="cards c4">
+<div class="card tight"><h3>Aseguradora</h3><p class="small">Prioriza dónde mandar a tasar daños.</p></div>
+<div class="card tight"><h3>Exportadora</h3><p class="small">Ajusta compras, camiones y puerto.</p></div>
+<div class="card tight"><h3>Banco</h3><p class="small">Anticipa pedidos de refinanciación.</p></div>
+<div class="card tight"><h3>Gobierno</h3><p class="small">Planifica la emergencia agropecuaria.</p></div>
+</div>
+<p class="lead">Un modelo vale por la decisión que cambia. Si nadie hace nada distinto, es un gráfico lindo.</p>
+<p class="muted">El modelo dice dónde mirar primero. No reemplaza a quien conoce el terreno.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Pregunta para el hackathon: ¿quién es el usuario y qué haría distinto el lunes? Si no pueden contestarla, falta definir el proyecto.</aside>
+</section>
+
+<section id="casos" data-transition="fade">
+<p class="eyebrow">DECIDIR · 3</p>
+<h2>La misma receta, otros casos</h2>
+<div class="cards c5">
+<div class="card caso">
+<svg aria-label="Estacionamiento con lugares ocupados y vacíos" viewBox="0 0 265 165" style="width:265px;height:165px">
+<rect x="0" y="0" width="265" height="165" rx="16" fill="#efece6"/>
+<rect x="10" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d1" x="16" y="16" width="24" height="50" rx="6" fill="#3d3934"/>
+<rect x="45" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d2" x="51" y="16" width="24" height="50" rx="6" fill="#ec6600"/>
+<rect x="80" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="115" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d3" x="121" y="16" width="24" height="50" rx="6" fill="#ec6600"/>
+<rect x="150" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d4" x="156" y="16" width="24" height="50" rx="6" fill="#3d3934"/>
+<rect x="185" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="220" y="10" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d5" x="226" y="16" width="24" height="50" rx="6" fill="#ec6600"/>
+<rect x="10" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d6" x="16" y="99" width="24" height="50" rx="6" fill="#ec6600"/>
+<rect x="45" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="80" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d1" x="86" y="99" width="24" height="50" rx="6" fill="#ec6600"/>
+<rect x="115" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d2" x="121" y="99" width="24" height="50" rx="6" fill="#ec6600"/>
+<rect x="150" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect x="185" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+<rect class="car d3" x="191" y="99" width="24" height="50" rx="6" fill="#3d3934"/>
+<rect x="220" y="93" width="35" height="62" fill="none" stroke="#cfcac2" stroke-width="2"/>
+</svg>
+<p class="step">PAGO</p>
+<p class="strong">Estacionamientos</p>
+<p class="small muted">Autos por local → ventas de una cadena.</p>
+</div>
+<div class="card caso">
+<svg aria-label="Tres tanques en perspectiva: lleno, a medias y casi vacío; la sombra interior crece cuando baja el techo" viewBox="0 0 265 165" style="width:265px;height:165px">
+<rect x="0" y="0" width="265" height="165" rx="16" fill="#efece6"/>
+<path d="M 11 56 L 11 100 A 37 19 0 0 0 85 100 L 85 56 Z" fill="#ffffff" stroke="#cfcac2" stroke-width="2"/>
+<path class="car d1" d="M 11 64 A 37 19 0 0 0 85 64 L 85 100 A 37 19 0 0 1 11 100 Z" fill="#ec6600"/>
+<ellipse cx="48" cy="56" rx="37" ry="19" fill="#3d3934" stroke="#cfcac2" stroke-width="2"/>
+<path class="car d1" d="M 11.2 58.0 A 37 19 0 0 1 84.8 58.0 A 37 19 0 0 1 11.2 58.0 Z" fill="#ffffff"/>
+<path d="M 95 56 L 95 100 A 37 19 0 0 0 169 100 L 169 56 Z" fill="#ffffff" stroke="#cfcac2" stroke-width="2"/>
+<path class="car d3" d="M 95 77 A 37 19 0 0 0 169 77 L 169 100 A 37 19 0 0 1 95 100 Z" fill="#ec6600"/>
+<ellipse cx="132" cy="56" rx="37" ry="19" fill="#3d3934" stroke="#cfcac2" stroke-width="2"/>
+<path class="car d3" d="M 98.9 64.5 A 37 19 0 0 1 165.1 64.5 A 37 19 0 0 1 98.9 64.5 Z" fill="#ffffff"/>
+<path d="M 179 56 L 179 100 A 37 19 0 0 0 253 100 L 253 56 Z" fill="#ffffff" stroke="#cfcac2" stroke-width="2"/>
+<path class="car d5" d="M 179 91 A 37 19 0 0 0 253 91 L 253 100 A 37 19 0 0 1 179 100 Z" fill="#ec6600"/>
+<ellipse cx="216" cy="56" rx="37" ry="19" fill="#3d3934" stroke="#cfcac2" stroke-width="2"/>
+<path class="car d5" d="M 194.6 71.5 A 37 19 0 0 1 237.4 71.5 A 37 19 0 0 1 194.6 71.5 Z" fill="#ffffff"/>
+</svg>
+<p class="step">PAGO</p>
+<p class="strong">Tanques de petróleo</p>
+<p class="small muted">Menos crudo, el techo baja y la sombra interior crece.</p>
+</div>
+<div class="card caso">
+<svg aria-label="Lotes verdes con una zona helada" viewBox="0 0 265 165" style="width:265px;height:165px">
+<rect x="0" y="0" width="265" height="165" rx="16" fill="#efece6"/>
+<rect x="12" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="61" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d1" x="61" y="12" width="45" height="44" rx="6" fill="#bfe3f2"/>
+<rect x="110" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d2" x="110" y="12" width="45" height="44" rx="6" fill="#bfe3f2"/>
+<rect x="159" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="208" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="12" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="61" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d3" x="61" y="60" width="45" height="44" rx="6" fill="#bfe3f2"/>
+<rect x="110" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d4" x="110" y="60" width="45" height="44" rx="6" fill="#bfe3f2"/>
+<rect x="159" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d5" x="159" y="60" width="45" height="44" rx="6" fill="#bfe3f2"/>
+<rect x="208" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="12" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="61" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="110" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d6" x="110" y="108" width="45" height="44" rx="6" fill="#bfe3f2"/>
+<rect x="159" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="208" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+</svg>
+<p class="step">GRATIS</p>
+<p class="strong">Helada del café</p>
+<p class="small muted">Temperatura y verdor en Brasil → la cosecha siguiente.</p>
+</div>
+<div class="card caso">
+<svg aria-label="Lotes verdes con una zona seca" viewBox="0 0 265 165" style="width:265px;height:165px">
+<rect x="0" y="0" width="265" height="165" rx="16" fill="#efece6"/>
+<rect x="12" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="61" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="110" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="159" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d1" x="159" y="12" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="208" y="12" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d2" x="208" y="12" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="12" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="61" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="110" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d3" x="110" y="60" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="159" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d4" x="159" y="60" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="208" y="60" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d5" x="208" y="60" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="12" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="61" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d6" x="61" y="108" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="110" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect x="159" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d1" x="159" y="108" width="45" height="44" rx="6" fill="#c25200"/>
+<rect x="208" y="108" width="45" height="44" rx="6" fill="#1f8a54"/>
+<rect class="car d2" x="208" y="108" width="45" height="44" rx="6" fill="#c25200"/>
+</svg>
+<p class="step">GRATIS</p>
+<p class="strong">Sequía y soja</p>
+<p class="small muted">Verdor y lluvia → toneladas y precio.</p>
+</div>
+<div class="card caso">
+<svg aria-label="Focos de incendio y una zona inundada" viewBox="0 0 265 165" style="width:265px;height:165px">
+<rect x="0" y="0" width="265" height="165" rx="16" fill="#efece6"/><path d="M 0 118 C 60 100 110 132 170 112 S 240 104 265 114 L 265 149 A 16 16 0 0 1 249 165 L 16 165 A 16 16 0 0 1 0 149 Z" fill="#1e7fae"/><circle class="car d1" cx="50" cy="40" r="9" fill="#ec6600"/><circle class="car d2" cx="78" cy="58" r="13" fill="#ec6600"/><circle class="car d3" cx="104" cy="36" r="7" fill="#ec6600"/><circle class="car d4" cx="170" cy="50" r="11" fill="#ec6600"/><circle class="car d5" cx="200" cy="72" r="8" fill="#ec6600"/><circle class="car d6" cx="140" cy="74" r="6" fill="#ec6600"/>
+</svg>
+<p class="step">GRATIS</p>
+<p class="strong">Incendios e inundaciones</p>
+<p class="small muted">Focos de calor y agua en superficie → daños y zonas a evacuar.</p>
+</div>
+</div>
+<p class="muted">Siempre igual: algo que se ve desde arriba, medido contra lo normal, cruzado con lo que querés anticipar.</p>
+<p class="foot">Dibujos ilustrativos, no imágenes reales.</p>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Contarlos por encima, un minuto cada uno. Estacionamientos: más autos, más ventas. Tanques: el techo flota sobre el crudo, así que cuanto más grande la sombra interior, más vacío está. Café: una helada en Brasil se ve en la temperatura y después en el verdor. Soja: el caso de hoy. Incendios e inundaciones: focos de calor con FIRMS y agua con radar. Los dos primeros necesitan imagen comercial paga; los otros tres se pueden hacer este fin de semana con datos gratis.</aside>
+</section>
+
+<section id="errores" class="alt" data-transition="fade">
+<p class="eyebrow">PARA LLEVARSE</p>
+<h2>Cinco errores que vas a querer evitar</h2>
+<ol>
+<li><span class="strong">Espiar el futuro.</span> Validar mezclando años al azar infla los resultados.</li>
+<li><span class="strong">No tener baseline.</span> Sin punto de comparación, cualquier número parece bueno.</li>
+<li><span class="strong">Confundir correlación con causa.</span> El precio tiene más dueños que tu dato.</li>
+<li><span class="strong">No chequear si el dato existe.</span> Primero el problema; después, antes de construir, mirá si hay dato que lo vea.</li>
+<li><span class="strong">Empezar por el modelo complejo.</span> Limpiar bien y un modelo simple suelen ganar.</li>
+</ol>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Cada uno tiene su ejemplo en la charla: validación hacia adelante, baseline de 27 %, Brasil y el precio, los autos que no entran en 10 m, el boosting que no le ganó a la regresión.</aside>
+</section>
+
+<section id="hackathon" data-transition="fade">
+<p class="eyebrow">RECURSOS</p>
+<h2>Para arrancar este fin de semana</h2>
+<div class="row" style="align-items:flex-start">
+<div class="col wide">
+<div class="card"><p class="step">EL REPO DE LA CHARLA</p><h3><a target="_blank" rel="noopener" href="https://github.com/lucastrubiano/satelites-datos-ia">github.com/lucastrubiano/satelites-datos-ia</a></h3><p>Notebook que corre en Colab sin instalar nada, los datos ya procesados y el dashboard.</p></div>
+<div class="card"><p class="step">IDEAS CON EL MISMO MOLDE</p><p>Cambiar soja por maíz o trigo. Incendios con FIRMS. Inundaciones con radar de Sentinel-1. Viñedos y heladas en Mendoza.</p></div>
+</div>
+<div class="col narrow">
+<p class="strong">Por dónde empezar</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://developers.google.com/earth-engine/datasets">Earth Engine</a>: catálogo y ejemplos</li>
+<li><a target="_blank" rel="noopener" href="https://worldview.earthdata.nasa.gov">NASA Worldview</a>: mirar antes de programar</li>
+<li><a target="_blank" rel="noopener" href="https://planetarycomputer.microsoft.com">Planetary Computer</a>: buscador STAC</li>
+<li>Los recursos de tu desafío en <a target="_blank" rel="noopener" href="https://www.spaceappschallenge.org">Space Apps</a></li>
+</ul>
+</div>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Mostrar el QR o el link del repo. El notebook corre con los features ya extraídos: no hace falta cuenta de Earth Engine para probarlo. Conecta con el material de recursos de la mentoría.</aside>
+</section>
+
+<section id="cierre" class="accent" data-transition="fade">
+<div class="grow">
+<p class="eyebrow">CIERRE</p>
+<h1>El dato está ahí arriba, gratis. La ventaja es saber qué preguntarle.</h1>
+<p class="lead">Lucas Trubiano · <a target="_blank" rel="noopener" href="https://www.trubidata.com">trubidata.com</a> · Tomemos un café</p>
+</div>
+<p class="mark">trubi<span class="cur">▮</span><span class="thin">data</span></p>
+<aside>Volver a Walton: él tenía una avioneta; ustedes tienen 26 años de imágenes y un notebook. Abrir preguntas.</aside>
+</section>
+</div>
+<div id="num"></div>
+<script>
+const ss = [...document.querySelectorAll('section')], esc = document.getElementById('escena'), num = document.getElementById('num');
+let i = Math.min(ss.length, Math.max(1, parseInt(location.hash.slice(1)) || 1)) - 1;
+function ir(n) { i = Math.max(0, Math.min(ss.length - 1, n)); ss.forEach((s, k) => s.classList.toggle('activa', k === i)); num.textContent = (i + 1) + ' / ' + ss.length; history.replaceState(null, '', '#' + (i + 1)); }
+function escalar() { const k = Math.min(innerWidth / 1920, innerHeight / 1080); esc.style.transform = 'scale(' + k + ') translate(-50%, -50%)'; }
+addEventListener('resize', escalar);
+addEventListener('keydown', e => { if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) ir(i + 1); else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) ir(i - 1); else if (e.key === 'Home') ir(0); else if (e.key === 'End') ir(ss.length - 1); else if (e.key === 'f') document.documentElement.requestFullscreen(); });
+addEventListener('click', e => { if (!e.target.closest('a')) ir(i + (e.clientX < innerWidth / 3 ? -1 : 1)); });
+escalar(); ir(i);
+</script>
+</body>
+</html>

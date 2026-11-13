@@ -1,0 +1,90 @@
+{
+  "v": 5,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-12T19:10:00Z"
+  },
+  "lists": "css",
+  "format": {
+    "v": 1,
+    "shared": [
+      "project/deck.css"
+    ]
+  },
+  "title": "Lo que ven los satélites antes que Wall Street",
+  "cover": "cover",
+  "order": [
+    "cover",
+    "walton",
+    "analitica",
+    "dik",
+    "bigdata",
+    "tipos-ia",
+    "imagen",
+    "resolucion",
+    "fuentes",
+    "nube",
+    "embudo",
+    "anomalia",
+    "ciclo",
+    "pregunta",
+    "validar",
+    "resultado",
+    "precio",
+    "tablero",
+    "decisiones",
+    "casos",
+    "errores",
+    "hackathon",
+    "cierre"
+  ],
+  "sections": {
+    "intro": {
+      "description": "El gancho de los autos contados desde el espacio y los cuatro tipos de analítica.",
+      "start": "cover"
+    },
+    "fundamentos": {
+      "description": "Dato, información y conocimiento; qué es big data; tipos de IA.",
+      "start": "dik"
+    },
+    "datos": {
+      "description": "Qué es una imagen satelital, qué se ve con cada resolución y dónde hay datos gratis.",
+      "start": "imagen"
+    },
+    "procesar": {
+      "description": "De millones de píxeles a pocas columnas: limpiar, comparar contra lo normal y conocer el ciclo del cultivo.",
+      "start": "embudo"
+    },
+    "predecir": {
+      "description": "El caso de la soja: baseline, modelo, sequía 2022/23 y la cadena hasta el precio.",
+      "start": "pregunta"
+    },
+    "decidir": {
+      "description": "Visualizar, quién decide con la señal y otros casos con la misma receta.",
+      "start": "tablero"
+    },
+    "cierre": {
+      "description": "Errores típicos, recursos para el hackathon y cierre.",
+      "start": "errores"
+    }
+  },
+  "faces": {
+    "geist": {
+      "family": "Geist",
+      "href": "https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap"
+    },
+    "geist-mono": {
+      "family": "Geist Mono",
+      "href": "https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400..600&display=swap"
+    }
+  },
+  "designSystems": [
+    {
+      "title": "Trubi Data design system",
+      "namespace": "trubidata",
+      "artifact": "https://claude.ai/artifact/ChM9QofvCMBjtYvJxrn2rT",
+      "version": "1794527555-6fbe",
+      "copiedAt": "2026-11-12T19:10:00Z"
+    }
+  ]
+}
