@@ -30,7 +30,11 @@ uv run earthengine authenticate           # una vez; abre el navegador, lo hace 
 ```sh
 uv run jupyter lab notebooks/01_soja_sequia.ipynb
 uv run jupyter nbconvert --to notebook --execute --inplace notebooks/01_soja_sequia.ipynb
+uv run streamlit run app/dashboard.py     # dashboard en http://localhost:8501, sin Earth Engine
 ```
+
+Los datos que lee el dashboard (`data/processed/*.csv`, `salidas/pipeline/`) se regeneran con Earth Engine
+desde `satdemo.features` (`extraer`, `serie_16dias`) y `satdemo.pipeline.generar`.
 
 No hay linter, tests ni build: [PENDIENTE: definir si hacen falta].
 

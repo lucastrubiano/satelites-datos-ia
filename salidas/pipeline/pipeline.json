@@ -1,0 +1,36 @@
+{
+  "embudo": {
+    "escenas": 6,
+    "pixeles_zona": 8907984,
+    "observaciones": 53447904,
+    "observaciones_buena_calidad": 52826978,
+    "observaciones_en_cultivo": 31570994,
+    "filas_finales": 100
+  },
+  "etapas": [
+    {
+      "archivo": "01_escena_falso_color.png",
+      "titulo": "Una escena MODIS cruda (falso color: infrarrojo, rojo, azul)"
+    },
+    {
+      "archivo": "02_ndvi_escena.png",
+      "titulo": "NDVI de esa escena, sin limpiar"
+    },
+    {
+      "archivo": "03_calidad.png",
+      "titulo": "Calidad del píxel (SummaryQA): verde se usa, rojo se descarta (nubes, sombra)"
+    },
+    {
+      "archivo": "04_cultivos.png",
+      "titulo": "Máscara de cultivos (ESA WorldCover, clase 40)"
+    },
+    {
+      "archivo": "05_ndvi_limpio.png",
+      "titulo": "NDVI máximo ene-mar 2023, solo cultivo y buena calidad"
+    },
+    {
+      "archivo": "06_anomalia.png",
+      "titulo": "Anomalía: NDVI máximo 2023 menos el máximo promedio 2001-2022 (rojo = menos verde que lo normal)"
+    }
+  ]
+}

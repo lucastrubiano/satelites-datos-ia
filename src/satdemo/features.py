@@ -45,6 +45,35 @@ def _lluvia(anio_siembra: int) -> ee.Image:
     return ee.ImageCollection(CHIRPS).filterDate(inicio, fin).sum().rename("lluvia_mm")
 
 
+def serie_16dias(deptos: ee.FeatureCollection, anio: int, cultivos: ee.Image | None = None) -> pd.DataFrame:
+    """NDVI medio de cultivo por departamento en cada imagen MODIS (cada 16 días) de un año calendario.
+
+    Es la serie fina que alimenta el mapa animado. Una llamada a Earth Engine por año.
+    """
+    if cultivos is None:
+        cultivos = ee.Image(ee.ImageCollection(WORLDCOVER).first()).eq(40)
+    col = ee.ImageCollection(MODIS).filterDate(f"{anio}-01-01", f"{anio + 1}-01-01")
+
+    def por_imagen(img):
+        ndvi = img.select("NDVI").multiply(0.0001).updateMask(img.select("SummaryQA").lte(1)).updateMask(cultivos)
+        fecha = img.date().format("YYYY-MM-dd")
+        return ndvi.reduceRegions(deptos, ee.Reducer.mean().setOutputs(["ndvi"]), scale=500, tileScale=4).map(
+            lambda f: f.set("fecha", fecha).setGeometry(None)
+        )
+
+    feats = col.map(por_imagen).flatten().getInfo()["features"]
+    return pd.DataFrame(
+        [
+            {
+                "departamento_id": f["properties"]["departamento_id"],
+                "fecha": f["properties"]["fecha"],
+                "ndvi": f["properties"].get("ndvi"),
+            }
+            for f in feats
+        ]
+    )
+
+
 def extraer(deptos: ee.FeatureCollection, anios: range) -> pd.DataFrame:
     """Una fila por departamento y campaña. Una llamada a Earth Engine por campaña."""
     cultivos = ee.Image(ee.ImageCollection(WORLDCOVER).first()).eq(40)

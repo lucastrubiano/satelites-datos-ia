@@ -13,7 +13,10 @@ soja por departamento, y compara un baseline contra dos modelos para anticipar l
 
 ## Mapa de carpetas
 - `notebooks/01_soja_sequia.ipynb` → la demo, corrida, con salidas guardadas
-- `src/satdemo/` → paquete que importa el notebook: `rinde.py` (MAGyP), `features.py` (Earth Engine), `modelo.py` (baseline, modelos, validación)
+- `app/dashboard.py` → dashboard Streamlit: mapa en el tiempo, mapa por campaña, tendencias, embudo de imágenes, features, modelo y alertas
+- `src/satdemo/` → paquete: `rinde.py` (MAGyP), `features.py` (Earth Engine: features por campaña y serie cada 16 días), `modelo.py` (baseline, modelos, validación), `pipeline.py` (imágenes por etapa y embudo de píxeles)
+- `data/processed/ndvi_16dias.csv` → NDVI por departamento en cada imagen MODIS, para el mapa en el tiempo
+- `salidas/pipeline/` → una imagen por etapa del tratamiento y `pipeline.json` con el embudo
 - `data/raw/` → CSV de MAGyP y GeoJSON de departamentos, tal como se bajan
 - `data/processed/features.csv` → NDVI y lluvia por departamento y campaña; versionado para no depender de Earth Engine
 - `salidas/` → PNG para las slides

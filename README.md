@@ -31,6 +31,12 @@ uv sync
 uv run jupyter lab notebooks/01_soja_sequia.ipynb
 ```
 
+**Dashboard** (mapa en el tiempo, tendencias, cómo se tratan las imágenes, modelo y alertas):
+
+```sh
+uv run streamlit run app/dashboard.py
+```
+
 Para recalcular las features, poné `EXTRAER = True` y un proyecto de Earth Engine propio (tier Community,
 gratis): `uv run earthengine authenticate`.
 

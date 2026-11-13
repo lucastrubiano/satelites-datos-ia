@@ -26,6 +26,17 @@
 - **Descartado:** dibujar a mano la zona núcleo; polígonos FAO GAUL (cruce por nombre).
 - **Estado:** vigente
 
+## 2026-11-12 · Dashboard en Streamlit
+- **Decisión:** `app/dashboard.py` en Streamlit + Plotly, con mapas MapLibre sobre teselas de CARTO (gratis, sin clave). Solo lee archivos del repo.
+- **Por qué:** pedido de Lucas (insights, mapa, embudo de imágenes, features). Es código, se levanta con un comando y se puede publicar gratis en Streamlit Community Cloud.
+- **Descartado:** Metabase (pide Docker y una base, y los tableros se arman a mano en la interfaz, no con código).
+- **Estado:** vigente
+
+## 2026-11-12 · Serie de NDVI cada 16 días para el mapa en el tiempo
+- **Decisión:** `data/processed/ndvi_16dias.csv`, NDVI de cultivo por departamento en cada imagen MODIS, feb-2000 a oct-2026 (61.400 filas). Anomalía contra el mismo departamento en la misma fecha del año.
+- **Por qué:** pedido de Lucas: un gráfico de líneas con los pozos de sequía y un mapa que sigue al slider.
+- **Estado:** vigente
+
 ## 2026-11-12 · Foco de la charla: fundamentos, no mercados
 - **Decisión:** el eje son los fundamentos de big data e IA para procesar imágenes satelitales, más un bloque de ML y series de tiempo. Los mercados son gancho y cierre.
 - **Por qué:** pedido de Lucas, alineado con lo que pidió Nahuel ("tenemos estos datos, ¿cómo los procesaríamos?").
